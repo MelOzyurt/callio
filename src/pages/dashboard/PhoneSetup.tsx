@@ -131,7 +131,7 @@ export default function PhoneSetup() {
               {[
                 { label: "Country", value: "United States" },
                 { label: "Type", value: "Toll-free" },
-                { label: "Provider", value: "Voxia" },
+                { label: "Provider", value: "Platform-managed" },
                 { label: "Status", value: "Verified" },
                 { label: "Provisioned", value: "Mar 10, 2026" },
               ].map((item, i) => (
