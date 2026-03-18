@@ -1,7 +1,8 @@
 import {
   Phone, LayoutDashboard, Bot, PhoneCall, FileText,
   Briefcase, ShoppingCart, HelpCircle, CreditCard,
-  LifeBuoy, Settings, ChevronLeft
+  LifeBuoy, Settings, ChevronLeft, PhoneForwarded,
+  ClipboardList
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -14,9 +15,11 @@ import { Button } from "@/components/ui/button";
 
 const mainNav = [
   { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
-  { title: "AI Agent", url: "/dashboard/agent", icon: Bot },
+  { title: "Agent", url: "/dashboard/agent", icon: Bot },
+  { title: "Phone Setup", url: "/dashboard/phone", icon: PhoneForwarded },
   { title: "Calls", url: "/dashboard/calls", icon: PhoneCall },
   { title: "Transcripts", url: "/dashboard/transcripts", icon: FileText },
+  { title: "Actions", url: "/dashboard/actions", icon: ClipboardList },
 ];
 
 const configNav = [
@@ -34,8 +37,6 @@ const accountNav = [
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
-  const isActive = (path: string) => location.pathname === path;
 
   const renderGroup = (label: string, items: typeof mainNav) => (
     <SidebarGroup>
@@ -72,7 +73,7 @@ export function AppSidebar() {
       </div>
       <SidebarContent className="px-2">
         {renderGroup("Main", mainNav)}
-        {renderGroup("Configure", configNav)}
+        {renderGroup("Knowledge Base", configNav)}
         {renderGroup("Account", accountNav)}
       </SidebarContent>
       <SidebarFooter className="p-2">
