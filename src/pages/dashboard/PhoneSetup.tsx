@@ -38,12 +38,12 @@ export default function PhoneSetup() {
                   <p className="mt-0.5 text-[10px] text-muted-foreground">This is the number your customers call</p>
                 </div>
                 <div className="rounded-lg border p-4">
-                  <p className="text-xs text-muted-foreground">Voxia Forwarding Number</p>
+                  <p className="text-xs text-muted-foreground">Virtual Number</p>
                   <div className="mt-1 flex items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">+1 (888) 555-0199</p>
                     <Button variant="ghost" size="icon" className="h-6 w-6"><Copy className="h-3 w-3" /></Button>
                   </div>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground">Forward your business number to this number</p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">Forward your business number to this virtual number</p>
                 </div>
               </div>
             </CardContent>
@@ -87,13 +87,13 @@ export default function PhoneSetup() {
             <CardHeader><CardTitle className="font-display text-base">How to Forward Your Number</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Set up call forwarding from your business phone provider to route calls through Voxia.
+                Set up call forwarding from your phone provider to route calls through the platform.
               </p>
               <div className="space-y-2">
                 {[
                   "Log in to your phone provider's dashboard (e.g., AT&T, Verizon, Google Voice)",
                   "Find the Call Forwarding or Routing settings",
-                  "Set the forwarding destination to your Voxia number: +1 (888) 555-0199",
+                  "Set the forwarding destination to your virtual number: +1 (888) 555-0199",
                   "Choose \"Forward all calls\" or \"Forward when busy/unanswered\"",
                   "Save changes and make a test call to verify",
                 ].map((step, i) => (
@@ -131,7 +131,7 @@ export default function PhoneSetup() {
               {[
                 { label: "Country", value: "United States" },
                 { label: "Type", value: "Toll-free" },
-                { label: "Provider", value: "Voxia" },
+                { label: "Provider", value: "Platform-managed" },
                 { label: "Status", value: "Verified" },
                 { label: "Provisioned", value: "Mar 10, 2026" },
               ].map((item, i) => (
