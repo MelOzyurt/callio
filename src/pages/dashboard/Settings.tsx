@@ -4,9 +4,91 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Save, Plus, Trash2 } from "lucide-react";
+import { Save, Plus, Trash2, Upload, Image } from "lucide-react";
+import { useState, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useOrganization, useOrgId } from "@/hooks/use-organization";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const { data: org } = useOrganization();
+  const orgId = useOrgId();
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const currentLogo = logoPreview ?? (org as any)?.logo_url ?? null;
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !orgId) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("File size must be under 2MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `${orgId}/logo.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("logos")
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("logos")
+        .getPublicUrl(path);
+
+      const logoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from("organizations")
+        .update({ logo_url: logoUrl } as any)
+        .eq("id", orgId);
+
+      if (updateError) throw updateError;
+
+      setLogoPreview(logoUrl);
+      queryClient.invalidateQueries({ queryKey: ["organization"] });
+      toast.success("Logo uploaded successfully.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload logo.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!orgId) return;
+    setUploading(true);
+    try {
+      const { error: updateError } = await supabase
+        .from("organizations")
+        .update({ logo_url: null } as any)
+        .eq("id", orgId);
+
+      if (updateError) throw updateError;
+
+      setLogoPreview(null);
+      queryClient.invalidateQueries({ queryKey: ["organization"] });
+      toast.success("Logo removed.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove logo.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -20,6 +102,7 @@ export default function SettingsPage() {
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList>
           <TabsTrigger value="profile">Business Profile</TabsTrigger>
+          <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="phone">Phone Settings</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="team">Team Members</TabsTrigger>
@@ -32,24 +115,78 @@ export default function SettingsPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <Label>Business Name</Label>
-                  <Input defaultValue="Maria's Salon" className="mt-1.5" />
+                  <Input defaultValue={org?.name ?? ""} className="mt-1.5" />
                 </div>
                 <div>
                   <Label>Industry</Label>
-                  <Input defaultValue="Salon / Spa" className="mt-1.5" />
+                  <Input defaultValue={org?.industry ?? ""} className="mt-1.5" />
                 </div>
                 <div>
                   <Label>Location</Label>
-                  <Input defaultValue="San Francisco, CA" className="mt-1.5" />
+                  <Input defaultValue={org?.location ?? ""} className="mt-1.5" />
                 </div>
                 <div>
                   <Label>Website</Label>
-                  <Input defaultValue="https://mariassalon.com" className="mt-1.5" />
+                  <Input defaultValue={org?.website ?? ""} className="mt-1.5" />
                 </div>
               </div>
               <div>
                 <Label>Opening Hours</Label>
-                <Input defaultValue="Mon-Fri 9am-7pm, Sat 9am-5pm" className="mt-1.5" />
+                <Input defaultValue={org?.opening_hours ?? ""} className="mt-1.5" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="branding" className="space-y-6">
+          <Card>
+            <CardHeader><CardTitle className="font-display text-base">Logo</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Upload your business logo. Recommended size: 512×512px. Max file size: 2MB.
+              </p>
+              <div className="flex items-start gap-6">
+                <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl border-2 border-dashed bg-muted/30 overflow-hidden">
+                  {currentLogo ? (
+                    <img
+                      src={currentLogo}
+                      alt="Business logo"
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <Image className="h-8 w-8 text-muted-foreground/40" />
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {uploading ? "Uploading…" : "Upload Logo"}
+                  </Button>
+                  {currentLogo && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      disabled={uploading}
+                      onClick={handleRemoveLogo}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Remove
+                    </Button>
+                  )}
+                  <p className="text-xs text-muted-foreground">PNG, JPG, or SVG accepted.</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -66,7 +203,7 @@ export default function SettingsPage() {
               <div>
                 <Label>Forwarding Number</Label>
                 <Input defaultValue="+1 (555) 111-2222" className="mt-1.5" />
-                <p className="mt-1 text-xs text-muted-foreground">Your <p className="mt-1 text-xs text-muted-foreground">Your Callio number that receives forwarded calls</p> that receives forwarded calls</p>
+                <p className="mt-1 text-xs text-muted-foreground">Your Callio number that receives forwarded calls</p>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
