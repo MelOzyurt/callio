@@ -245,7 +245,7 @@ export default function Landing() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
               <Phone className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="font-display text-lg font-bold text-foreground">Voxia</span>
+            <span className="font-display text-lg font-bold text-foreground">Callio</span>
           </div>
           <p className="text-sm text-muted-foreground">© 2026 <p className="text-sm text-muted-foreground">© 2026 Callio. All rights reserved.</p> rights reserved.</p>
         </div>
