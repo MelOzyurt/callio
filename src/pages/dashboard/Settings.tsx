@@ -66,7 +66,7 @@ export default function SettingsPage() {
               <div>
                 <Label>Forwarding Number</Label>
                 <Input defaultValue="+1 (555) 111-2222" className="mt-1.5" />
-                <p className="mt-1 text-xs text-muted-foreground">Your Voxia number that receives forwarded calls</p>
+                <p className="mt-1 text-xs text-muted-foreground">Your <p className="mt-1 text-xs text-muted-foreground">Your Callio number that receives forwarded calls</p> that receives forwarded calls</p>
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div>
