@@ -87,7 +87,7 @@ export default function PhoneSetup() {
             <CardHeader><CardTitle className="font-display text-base">How to Forward Your Number</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Set up call forwarding from your business phone provider to route calls through Voxia.
+                Set up call forwarding from your phone provider to route calls through the platform.
               </p>
               <div className="space-y-2">
                 {[
