@@ -28,7 +28,7 @@ const useCases = [
 const steps = [
   { num: "01", title: "Sign Up & Configure", desc: "Create your account, add your business details, services, and FAQs." },
   { num: "02", title: "Customize Your Agent", desc: "Set your agent's tone, greeting, and the actions it can perform." },
-  { num: "03", title: "Go Live", desc: "Forward your business line to Voxia. Calls are answered instantly, 24/7." },
+  { num: "03", title: "Go Live", desc: "Forward your business line to Callio. Calls are answered instantly, 24/7." },
 ];
 
 const plans = [
@@ -47,7 +47,7 @@ export default function Landing() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Phone className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground">Voxia</span>
+            <span className="font-display text-xl font-bold text-foreground">Callio</span>
           </Link>
           <div className="hidden items-center gap-8 md:flex">
             <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a>
@@ -75,7 +75,7 @@ export default function Landing() {
             Never Miss a Call.<br />Never Lose a Customer.
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Voxia answers your business calls 24/7 with an AI agent that books appointments, captures leads, and handles orders — so you can focus on what you do best.
+            Callio answers your business calls 24/7 with an AI agent that books appointments, captures leads, and handles orders — so you can focus on what you do best.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button variant="hero" size="xl" asChild>
@@ -110,7 +110,7 @@ export default function Landing() {
             ].map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "Caller" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[75%] rounded-xl px-4 py-2.5 text-sm ${msg.role === "Caller" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"}`}>
-                  <span className="mb-0.5 block text-[10px] font-semibold opacity-70">{msg.role === "AI" ? "Voxia Agent" : "Caller"}</span>
+                  <span className="mb-0.5 block text-[10px] font-semibold opacity-70">{msg.role === "AI" ? "Callio Agent" : "Caller"}</span>
                   {msg.text}
                 </div>
               </div>
@@ -171,7 +171,7 @@ export default function Landing() {
         <div className="container">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-3xl font-bold text-foreground">Built for Every Business</h2>
-            <p className="mt-3 text-muted-foreground">From restaurants to clinics, Voxia adapts to your industry.</p>
+            <p className="mt-3 text-muted-foreground">From restaurants to clinics, Callio adapts to your industry.</p>
           </div>
           <div className="mx-auto mt-16 grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {useCases.map((uc, i) => (
@@ -229,7 +229,7 @@ export default function Landing() {
       <section className="border-t bg-navy py-24">
         <div className="container text-center">
           <h2 className="font-display text-3xl font-bold text-navy-foreground">Ready to Transform Your Phone Line?</h2>
-          <p className="mx-auto mt-4 max-w-xl text-navy-foreground/70">Join hundreds of businesses using Voxia to handle calls, capture leads, and book appointments automatically.</p>
+          <p className="mx-auto mt-4 max-w-xl text-navy-foreground/70">Join hundreds of businesses using Callio to handle calls, capture leads, and book appointments automatically.</p>
           <div className="mt-10 flex justify-center gap-4">
             <Button variant="hero" size="xl" asChild>
               <Link to="/signup">Start Free Trial <ArrowRight className="ml-1 h-5 w-5" /></Link>
@@ -245,9 +245,9 @@ export default function Landing() {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
               <Phone className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
-            <span className="font-display text-lg font-bold text-foreground">Voxia</span>
+            <span className="font-display text-lg font-bold text-foreground">Callio</span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2026 Voxia. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2026 Callio. All rights reserved.</p>
         </div>
       </footer>
     </div>

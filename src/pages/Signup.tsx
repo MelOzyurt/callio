@@ -24,7 +24,7 @@ export default function Signup() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Phone className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground">Voxia</span>
+            <span className="font-display text-xl font-bold text-foreground"><span className="font-display text-xl font-bold text-foreground">Callio</span></span>
           </Link>
           <h1 className="mt-6 font-display text-2xl font-bold text-foreground">Create your account</h1>
           <p className="mt-2 text-sm text-muted-foreground">Get started with your AI phone agent</p>

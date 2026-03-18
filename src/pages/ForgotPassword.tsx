@@ -22,7 +22,7 @@ export default function ForgotPassword() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <Phone className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-display text-xl font-bold text-foreground">Voxia</span>
+            <span className="font-display text-xl font-bold text-foreground"><span className="font-display text-xl font-bold text-foreground">Callio</span></span>
           </Link>
           <h1 className="mt-6 font-display text-2xl font-bold text-foreground">Reset your password</h1>
           <p className="mt-2 text-sm text-muted-foreground">We'll send you a reset link</p>
