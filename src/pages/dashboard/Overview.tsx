@@ -9,7 +9,7 @@ const metrics = [
   { title: "Total Calls", value: "1,247", change: "+12%", up: true, icon: Phone },
   { title: "Missed Calls", value: "23", change: "-8%", up: false, icon: PhoneMissed },
   { title: "AI Handled", value: "1,180", change: "+15%", up: true, icon: Bot },
-  { title: "Callbacks", value: "44", change: "+3%", up: true, icon: PhoneCallback },
+  { title: "Callbacks", value: "44", change: "+3%", up: true, icon: PhoneForwarded },
   { title: "Bookings", value: "89", change: "+22%", up: true, icon: CalendarCheck },
 ];
 
