@@ -24,6 +24,15 @@ import Support from "./pages/dashboard/Support";
 import SettingsPage from "./pages/dashboard/Settings";
 import NotFound from "./pages/NotFound";
 
+// Admin
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminGuard from "./components/AdminGuard";
+import AdminLayout from "./components/AdminLayout";
+import AdminOverview from "./pages/admin/AdminOverview";
+import AdminPlatformSettings from "./pages/admin/AdminPlatformSettings";
+import AdminOrganizations from "./pages/admin/AdminOrganizations";
+import AdminUsers from "./pages/admin/AdminUsers";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -53,6 +62,18 @@ const App = () => (
             <Route path="support" element={<Support />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
+
+          {/* Admin routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminGuard />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminOverview />} />
+              <Route path="settings" element={<AdminPlatformSettings />} />
+              <Route path="organizations" element={<AdminOrganizations />} />
+              <Route path="users" element={<AdminUsers />} />
+            </Route>
+          </Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
