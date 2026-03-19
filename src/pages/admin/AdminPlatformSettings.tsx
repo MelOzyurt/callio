@@ -399,7 +399,6 @@ export default function AdminSettings() {
                   Base URL for call webhooks. The handler path will be appended automatically.
                 </p>
               </div>
-              </div>
             </div>
           </fieldset>
           <div className="mt-4 flex items-center gap-3">
