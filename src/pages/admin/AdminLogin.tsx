@@ -6,9 +6,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -34,8 +36,8 @@ export default function AdminLogin() {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
 
+        await queryClient.invalidateQueries({ queryKey: ["admin-auth"] });
         navigate("/admin");
-      } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
@@ -51,6 +53,7 @@ export default function AdminLogin() {
           return;
         }
 
+        await queryClient.invalidateQueries({ queryKey: ["admin-auth"] });
         navigate("/admin");
       }
     } catch (err: any) {
