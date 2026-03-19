@@ -388,7 +388,7 @@ export default function AdminSettings() {
                   Base URL for call webhooks. The handler path will be appended automatically.
                 </p>
               </div>
-              <div className="mt-4">
+              <div className="mt-4 flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
@@ -399,6 +399,17 @@ export default function AdminSettings() {
                     <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Testing…</>
                   ) : (
                     <><CheckCircle className="mr-2 h-4 w-4" /> Test Connection</>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => saveVoiceMutation.mutate()}
+                  disabled={saveVoiceMutation.isPending}
+                >
+                  {saveVoiceMutation.isPending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="mr-2 h-4 w-4" /> Save Voice Settings</>
                   )}
                 </Button>
               </div>
