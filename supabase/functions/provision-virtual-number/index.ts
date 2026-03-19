@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
     const provider = settings.default_voice_provider;
     const apiKey = (settings as Record<string, unknown>).provider_api_key as string;
-    const bundleId = (settings as Record<string, unknown>).provider_bundle_id as string;
+    
     const connectionId = (settings as Record<string, unknown>).provider_connection_id as string;
     const numberType = (settings as Record<string, unknown>).provider_number_type as string || "national";
     const countryCode = (settings as Record<string, unknown>).provider_country_code as string || "GB";
