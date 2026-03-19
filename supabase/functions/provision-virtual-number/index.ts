@@ -131,16 +131,6 @@ Deno.serve(async (req) => {
         phone_numbers: [
           {
             phone_number: availableNumber,
-            ...(bundleId
-              ? {
-                  regulatory_requirements: [
-                    {
-                      requirement_id: "regulatory_bundle",
-                      field_value: bundleId,
-                    },
-                  ],
-                }
-              : {}),
           },
         ],
         ...(connectionId ? { connection_id: connectionId } : {}),
