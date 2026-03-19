@@ -113,8 +113,14 @@ export default function Onboarding() {
     next();
   };
 
-  const next = () => step < stepTitles.length - 1 ? setStep(step + 1) : navigate("/dashboard");
-  const back = () => step > 0 && setStep(step - 1);
+  const next = async () => {
+    // Create org before phone provisioning step
+    if (step === 3) {
+      const ok = await ensureOrganization();
+      if (!ok) return;
+    }
+    step < stepTitles.length - 1 ? setStep(step + 1) : navigate("/dashboard");
+  };
 
   const canProceedPhoneLine = phoneSetup?.virtual_number && phoneSetup?.forwarding_confirmed;
 
