@@ -88,7 +88,7 @@ export default function AdminSettings() {
       setProvider(settings.default_voice_provider);
       const s = settings as Record<string, unknown>;
       setApiKey((s.provider_api_key as string) ?? "");
-      setApiSecret((s.provider_api_secret as string) ?? "");
+      
       setBundleId((s.provider_bundle_id as string) ?? "");
       setConnectionId((s.provider_connection_id as string) ?? "");
       setNumberType((s.provider_number_type as string) ?? "national");
