@@ -261,11 +261,7 @@ export default function AdminSettings() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="font-display text-base">Voice Provider</CardTitle>
-            {!voiceEditing && settings && (
-              <Button variant="outline" size="sm" onClick={() => setVoiceEditing(true)}>
-                <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
-              </Button>
-            )}
+
           </CardHeader>
           <CardContent>
           <fieldset disabled={!voiceEditing && !!settings} className="space-y-6">
