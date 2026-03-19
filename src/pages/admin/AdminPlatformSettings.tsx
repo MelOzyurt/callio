@@ -52,7 +52,7 @@ export default function AdminSettings() {
 
   // Voice provider state
   const [apiKey, setApiKey] = useState("");
-  const [bundleId, setBundleId] = useState("");
+  
   const [connectionId, setConnectionId] = useState("");
   const [numberType, setNumberType] = useState("national");
   const [countryCode, setCountryCode] = useState("GB");
@@ -89,7 +89,7 @@ export default function AdminSettings() {
       const s = settings as Record<string, unknown>;
       setApiKey((s.provider_api_key as string) ?? "");
       
-      setBundleId((s.provider_bundle_id as string) ?? "");
+      
       setConnectionId((s.provider_connection_id as string) ?? "");
       setNumberType((s.provider_number_type as string) ?? "national");
       setCountryCode((s.provider_country_code as string) ?? "GB");
@@ -115,7 +115,7 @@ export default function AdminSettings() {
       const payload = {
         default_voice_provider: provider,
         provider_api_key: apiKey || null,
-        provider_bundle_id: bundleId || null,
+        
         provider_connection_id: connectionId || null,
         provider_number_type: numberType,
         provider_country_code: countryCode,
@@ -314,15 +314,6 @@ export default function AdminSettings() {
                       {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
-                </div>
-                <div>
-                  <Label>Regulatory Bundle ID</Label>
-                  <Input
-                    placeholder="Enter bundle ID"
-                    value={bundleId}
-                    onChange={e => setBundleId(e.target.value)}
-                    className="mt-1.5"
-                  />
                 </div>
                 <div>
                   <Label>Connection ID</Label>
