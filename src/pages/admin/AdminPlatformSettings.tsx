@@ -264,7 +264,7 @@ export default function AdminSettings() {
 
           </CardHeader>
           <CardContent>
-          <fieldset disabled={!voiceEditing && !!settings} className="space-y-6">
+          <fieldset className="space-y-6">
             <div>
               <p className="text-sm text-muted-foreground">
                 Select the default telephony provider for new organizations.
