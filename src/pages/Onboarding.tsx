@@ -27,7 +27,10 @@ const stepTitles = ["Business Profile", "Services & Hours", "Agent Setup", "Phon
 
 export default function Onboarding() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const orgId = useOrgId();
   const [step, setStep] = useState(0);
+  const [creatingOrg, setCreatingOrg] = useState(false);
   const [data, setData] = useState({
     businessName: "", industry: "", location: "", phone: "", website: "",
     hours: "", services: "", description: "",
@@ -47,13 +50,55 @@ export default function Onboarding() {
     update("selectedActions", actions);
   };
 
-  // Auto-trigger provisioning when reaching the phone line step
+  // Create organization before phone provisioning step if not exists
+  const ensureOrganization = async () => {
+    if (orgId) return true;
+    setCreatingOrg(true);
+    try {
+      // Create organization
+      const { data: org, error: orgError } = await supabase
+        .from("organizations")
+        .insert({
+          name: data.businessName || "My Business",
+          industry: data.industry || null,
+          location: data.location || null,
+          primary_business_number: data.phone || null,
+          website: data.website || null,
+          opening_hours: data.hours || null,
+        })
+        .select("id")
+        .single();
+      if (orgError) throw orgError;
+
+      // Link profile to org
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({ organization_id: org.id })
+          .eq("id", user.id);
+        if (profileError) throw profileError;
+      }
+
+      // Invalidate queries so orgId refreshes
+      await queryClient.invalidateQueries({ queryKey: ["current-user"] });
+      return true;
+    } catch (err) {
+      console.error("Failed to create organization:", err);
+      toast.error("Failed to create your business profile. Please try again.");
+      return false;
+    } finally {
+      setCreatingOrg(false);
+    }
+  };
+
+  // Auto-trigger provisioning when reaching the phone line step (only when orgId is available)
   useEffect(() => {
-    if (step === 4 && !phoneSetup?.virtual_number && !provisionTriggered && !isProvisioning) {
+    if (step === 4 && orgId && !phoneSetup?.virtual_number && !provisionTriggered && !isProvisioning) {
       setProvisionTriggered(true);
       provisionNumber();
     }
-  }, [step, phoneSetup?.virtual_number, provisionTriggered, isProvisioning, provisionNumber]);
+  }, [step, orgId, phoneSetup?.virtual_number, provisionTriggered, isProvisioning, provisionNumber]);
 
   const handleCopyNumber = () => {
     if (phoneSetup?.virtual_number) {
