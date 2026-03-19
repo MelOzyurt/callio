@@ -293,7 +293,6 @@ Deno.serve(async (req) => {
       verification_status: "provisioned",
       provider_config: {
         connection_id: connectionId || null,
-        bundle_id: bundleId || null,
       },
     };
 

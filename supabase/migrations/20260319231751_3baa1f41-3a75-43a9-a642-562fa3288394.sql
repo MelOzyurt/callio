@@ -1,0 +1,1 @@
+ALTER TABLE public.platform_settings DROP COLUMN IF EXISTS provider_bundle_id;
