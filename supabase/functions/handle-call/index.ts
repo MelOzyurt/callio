@@ -144,7 +144,6 @@ async function getAIResponse(
     console.error("AI call failed:", err);
     return "I'm sorry, I'm having technical difficulties. Please try again.";
   }
-  }
 }
 
 function buildSystemPrompt(agent: Record<string, unknown>, org: Record<string, unknown>): string {
