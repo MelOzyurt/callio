@@ -121,6 +121,7 @@ export default function Onboarding() {
     }
     step < stepTitles.length - 1 ? setStep(step + 1) : navigate("/dashboard");
   };
+  const back = () => step > 0 && setStep(step - 1);
 
   const canProceedPhoneLine = phoneSetup?.virtual_number && phoneSetup?.forwarding_confirmed;
 
