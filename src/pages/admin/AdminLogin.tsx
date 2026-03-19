@@ -53,6 +53,7 @@ export default function AdminLogin() {
           return;
         }
 
+        await queryClient.invalidateQueries({ queryKey: ["admin-auth"] });
         navigate("/admin");
       }
     } catch (err: any) {
