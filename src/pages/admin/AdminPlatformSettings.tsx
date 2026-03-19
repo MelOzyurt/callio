@@ -507,7 +507,7 @@ export default function AdminSettings() {
               </div>
             </div>
 
-            <div>
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"
@@ -518,6 +518,17 @@ export default function AdminSettings() {
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Testing…</>
                 ) : (
                   <><CheckCircle className="mr-2 h-4 w-4" /> Test LLM Connection</>
+                )}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => saveLlmMutation.mutate()}
+                disabled={saveLlmMutation.isPending}
+              >
+                {saveLlmMutation.isPending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                ) : (
+                  <><Save className="mr-2 h-4 w-4" /> Save LLM Settings</>
                 )}
               </Button>
             </div>
