@@ -115,7 +115,7 @@ export default function AdminSettings() {
       const payload = {
         default_voice_provider: provider,
         provider_api_key: apiKey || null,
-        provider_bundle_id: bundleId || null,
+        
         provider_connection_id: connectionId || null,
         provider_number_type: numberType,
         provider_country_code: countryCode,
