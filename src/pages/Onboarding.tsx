@@ -369,9 +369,16 @@ export default function Onboarding() {
             <Button variant="ghost" onClick={back} disabled={step === 0}><ArrowLeft className="mr-2 h-4 w-4" /> Back</Button>
             <Button
               onClick={next}
-              disabled={step === 4 && !phoneSetup?.virtual_number}
+              disabled={(step === 4 && !phoneSetup?.virtual_number) || creatingOrg}
             >
-              {step === stepTitles.length - 1 ? "Launch Dashboard" : "Continue"} <ArrowRight className="ml-2 h-4 w-4" />
+              {creatingOrg ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating…</>
+              ) : step === stepTitles.length - 1 ? (
+                "Launch Dashboard"
+              ) : (
+                "Continue"
+              )}
+              {!creatingOrg && <ArrowRight className="ml-2 h-4 w-4" />}
             </Button>
           </div>
         </div>
