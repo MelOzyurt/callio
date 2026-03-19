@@ -52,7 +52,7 @@ export default function AdminSettings() {
 
   // Voice provider state
   const [apiKey, setApiKey] = useState("");
-  const [bundleId, setBundleId] = useState("");
+  
   const [connectionId, setConnectionId] = useState("");
   const [numberType, setNumberType] = useState("national");
   const [countryCode, setCountryCode] = useState("GB");
