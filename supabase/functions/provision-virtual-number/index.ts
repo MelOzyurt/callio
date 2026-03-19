@@ -244,7 +244,8 @@ Deno.serve(async (req) => {
         searchData.available_phone_numbers[0].phone_number;
 
       // Purchase
-      const webhookUrl = `${supabaseUrl}/functions/v1/handle-call?org=${organization_id}`;
+      const base = webhookBaseUrl || `${supabaseUrl}/functions/v1`;
+      const webhookUrl = `${base}/handle-call?org=${organization_id}`;
       const purchaseRes = await fetch(
         `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/IncomingPhoneNumbers.json`,
         {

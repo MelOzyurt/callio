@@ -274,6 +274,18 @@ export default function AdminSettings() {
                   </Select>
                 </div>
               </div>
+              <div>
+                <Label>Webhook Base URL</Label>
+                <Input
+                  placeholder="https://your-project.supabase.co/functions/v1"
+                  value={webhookBaseUrl}
+                  onChange={e => setWebhookBaseUrl(e.target.value)}
+                  className="mt-1.5"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Base URL for call webhooks. The handler path will be appended automatically.
+                </p>
+              </div>
               <div className="mt-4">
                 <Button
                   variant="outline"
