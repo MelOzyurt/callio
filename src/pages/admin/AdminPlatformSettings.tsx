@@ -68,7 +68,7 @@ export default function AdminSettings() {
   const [llmLanguage, setLlmLanguage] = useState("en");
   const [showLlmApiKey, setShowLlmApiKey] = useState(false);
   const [testingLlm, setTestingLlm] = useState(false);
-  const [llmEditing, setLlmEditing] = useState(false);
+  
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["platform-settings"],
