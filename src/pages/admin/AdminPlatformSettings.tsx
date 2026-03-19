@@ -64,6 +64,7 @@ export default function AdminSettings() {
         provider_connection_id: connectionId || null,
         provider_number_type: numberType,
         provider_country_code: countryCode,
+        webhook_base_url: webhookBaseUrl || null,
       } as Record<string, unknown>;
 
       if (settings?.id) {
