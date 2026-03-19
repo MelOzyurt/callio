@@ -29,18 +29,45 @@ export default function Signup() {
           <h1 className="mt-6 font-display text-2xl font-bold text-foreground">Create your account</h1>
           <p className="mt-2 text-sm text-muted-foreground">Get started with your AI phone agent</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
           <div>
             <Label htmlFor="name">Full Name</Label>
-            <Input id="name" placeholder="John Doe" value={name} onChange={e => setName(e.target.value)} className="mt-1.5" />
+            <Input
+              id="name"
+              autoComplete="name"
+              placeholder="John Doe"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
           <div>
             <Label htmlFor="email">Work Email</Label>
-            <Input id="email" type="email" placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} className="mt-1.5" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="you@company.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Min. 8 characters" value={password} onChange={e => setPassword(e.target.value)} className="mt-1.5" />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              placeholder="Use a unique password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
           <Button type="submit" className="w-full">Create Account</Button>
         </form>
