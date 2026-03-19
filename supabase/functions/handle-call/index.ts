@@ -29,13 +29,32 @@ interface WebhookEvent {
   };
 }
 
-async function getProviderApiKey(supabase: ReturnType<typeof createClient>): Promise<string> {
+interface LlmConfig {
+  provider: string;
+  apiKey: string;
+  model: string;
+  language: string;
+}
+
+async function getPlatformConfig(supabase: ReturnType<typeof createClient>): Promise<{
+  providerApiKey: string;
+  llm: LlmConfig;
+}> {
   const { data } = await supabase
     .from("platform_settings")
-    .select("provider_api_key")
+    .select("*")
     .limit(1)
     .single();
-  return (data as Record<string, unknown>)?.provider_api_key as string || "";
+  const s = (data || {}) as Record<string, unknown>;
+  return {
+    providerApiKey: (s.provider_api_key as string) || "",
+    llm: {
+      provider: (s.llm_provider as string) || "lovable",
+      apiKey: (s.llm_api_key as string) || "",
+      model: (s.llm_model as string) || "google/gemini-2.5-flash",
+      language: (s.llm_language as string) || "en",
+    },
+  };
 }
 
 async function providerAction(
