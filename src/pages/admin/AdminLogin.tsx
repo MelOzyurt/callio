@@ -21,23 +21,16 @@ export default function AdminLogin() {
 
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: fullName } },
+        // Use edge function for admin signup (service role assigns admin role)
+        const res = await supabase.functions.invoke("admin-signup", {
+          body: { email, password, full_name: fullName },
         });
-        if (error) throw error;
 
-        // Assign admin role
-        if (data.user) {
-          const { error: roleError } = await supabase
-            .from("user_roles")
-            .insert({ user_id: data.user.id, role: "admin" as any });
-          if (roleError) throw roleError;
-        }
+        if (res.error) throw new Error(res.error.message);
+        if (res.data?.error) throw new Error(res.data.error);
 
         toast.success("Admin account created. Signing in…");
-        // Sign in after signup
+
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
 
