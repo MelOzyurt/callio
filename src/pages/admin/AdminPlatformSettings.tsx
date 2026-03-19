@@ -59,7 +59,7 @@ export default function AdminSettings() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [webhookBaseUrl, setWebhookBaseUrl] = useState("");
   const [testingConnection, setTestingConnection] = useState(false);
-  const [voiceEditing, setVoiceEditing] = useState(false);
+  
 
   // LLM state
   const [llmProvider, setLlmProvider] = useState("lovable");
