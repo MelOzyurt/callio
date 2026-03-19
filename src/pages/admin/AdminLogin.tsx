@@ -71,13 +71,14 @@ export default function AdminLogin() {
             {isSignUp ? "Create a new admin account" : "Sign in with your admin account"}
           </p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
           {isSignUp && (
             <div>
               <Label htmlFor="admin-name">Full Name</Label>
               <Input
                 id="admin-name"
                 type="text"
+                autoComplete="name"
                 placeholder="John Doe"
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
@@ -91,6 +92,11 @@ export default function AdminLogin() {
             <Input
               id="admin-email"
               type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="admin@callio.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -103,7 +109,8 @@ export default function AdminLogin() {
             <Input
               id="admin-password"
               type="password"
-              placeholder="••••••••"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              placeholder={isSignUp ? "Use a unique password" : "••••••••"}
               value={password}
               onChange={e => setPassword(e.target.value)}
               className="mt-1.5"

@@ -28,17 +28,37 @@ export default function Login() {
           <h1 className="mt-6 font-display text-2xl font-bold text-foreground">Welcome back</h1>
           <p className="mt-2 text-sm text-muted-foreground">Sign in to your account</p>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
           <div>
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} className="mt-1.5" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="you@company.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
           <div>
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
               <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>
             </div>
-            <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="mt-1.5" />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
           <Button type="submit" className="w-full">Sign In</Button>
         </form>
