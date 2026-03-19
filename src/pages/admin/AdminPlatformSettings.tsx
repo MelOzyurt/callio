@@ -316,15 +316,6 @@ export default function AdminSettings() {
                   </div>
                 </div>
                 <div>
-                  <Label>Regulatory Bundle ID</Label>
-                  <Input
-                    placeholder="Enter bundle ID"
-                    value={bundleId}
-                    onChange={e => setBundleId(e.target.value)}
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
                   <Label>Connection ID</Label>
                   <Input
                     placeholder="Enter connection ID"
