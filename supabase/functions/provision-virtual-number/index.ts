@@ -179,7 +179,8 @@ Deno.serve(async (req) => {
         "";
 
       // Assign webhook URL to the number (via connection or direct update)
-      const webhookUrl = `${supabaseUrl}/functions/v1/handle-call?org=${organization_id}`;
+      const base = webhookBaseUrl || `${supabaseUrl}/functions/v1`;
+      const webhookUrl = `${base}/handle-call?org=${organization_id}`;
       
       if (phoneNumberId) {
         await fetch(
