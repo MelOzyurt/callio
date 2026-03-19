@@ -238,7 +238,9 @@ Deno.serve(async (req) => {
     if (orgResult.data) org = orgResult.data as Record<string, unknown>;
     if (agentResult.data) agent = agentResult.data as Record<string, unknown>;
 
-    const apiKey = await getProviderApiKey(supabase);
+    const platformConfig = await getPlatformConfig(supabase);
+    const apiKey = platformConfig.providerApiKey;
+    const llmConfig = platformConfig.llm;
 
     // Handle events
     switch (eventType) {
