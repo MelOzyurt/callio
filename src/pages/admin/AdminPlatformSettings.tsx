@@ -424,6 +424,7 @@ export default function AdminSettings() {
                 </Button>
               </div>
             </div>
+          </fieldset>
           </CardContent>
         </Card>
 
