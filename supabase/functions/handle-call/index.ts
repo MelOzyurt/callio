@@ -290,6 +290,7 @@ Deno.serve(async (req) => {
         .from("phone_setups")
         .select("organization_id")
         .eq("virtual_number", to)
+        .eq("pairing_status", "paired")
         .eq("routing_enabled", true)
         .limit(1)
         .maybeSingle();
