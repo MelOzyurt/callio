@@ -14,9 +14,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { usePhoneSetup } from "@/hooks/use-phone-setup";
-import { useOrganization } from "@/hooks/use-organization";
+import { useOrganization, useOrgId } from "@/hooks/use-organization";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useState } from "react";
 
 function deriveCountry(number: string | null): string {
   if (!number) return "Unknown";
@@ -48,6 +50,26 @@ export default function PhoneSetup() {
     isUpdating,
   } = usePhoneSetup();
   const { data: org } = useOrganization();
+  const orgId = useOrgId();
+  const [isTestingCall, setIsTestingCall] = useState(false);
+
+  const handleTestCall = async () => {
+    if (!orgId) return;
+    setIsTestingCall(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("make-test-call", {
+        body: { organization_id: orgId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || "Test call initiated!");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to initiate test call";
+      toast.error(message);
+    } finally {
+      setIsTestingCall(false);
+    }
+  };
 
   const virtualNumber = phoneSetup?.virtual_number;
   const isProvisioned = !!virtualNumber;
@@ -254,8 +276,16 @@ export default function PhoneSetup() {
                 <p className="text-sm text-muted-foreground">
                   Make a test call to hear how your AI agent handles a real conversation.
                 </p>
-                <Button className="w-full">
-                  <PhoneCall className="mr-2 h-4 w-4" /> Make Test Call
+                <Button className="w-full" onClick={handleTestCall} disabled={isTestingCall}>
+                  {isTestingCall ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Calling…
+                    </>
+                  ) : (
+                    <>
+                      <PhoneCall className="mr-2 h-4 w-4" /> Make Test Call
+                    </>
+                  )}
                 </Button>
                 <p className="text-[10px] text-muted-foreground text-center">
                   We'll call your business number and simulate a customer conversation.
