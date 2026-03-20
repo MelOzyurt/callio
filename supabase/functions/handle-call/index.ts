@@ -375,7 +375,7 @@ Deno.serve(async (req) => {
 
         await providerAction(call_control_id, "speak", apiKey, {
           payload: greeting,
-          voice: "Polly.Joanna",
+          voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
           language: "en-US",
           client_state: encodeState("greeting"),
         });
@@ -394,20 +394,23 @@ Deno.serve(async (req) => {
           });
         } else {
           // After greeting or AI response → gather speech
-          console.log(`[call.speak.ended] Starting gather (speech)`);
-          await providerAction(call_control_id, "gather", apiKey, {
+          console.log(`[call.speak.ended] Starting gather_using_speak`);
+          await providerAction(call_control_id, "gather_using_speak", apiKey, {
+            payload: ".",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
+            language: "en-US",
             gather_method: "speech",
             speech_model: "enhanced",
-            language: (agent.language as string) === "tr" ? "tr" : "en",
-            speech_timeout: 3,
-            timeout: 20,
-            gather_after_silence: 1,
+            speech_timeout: "auto",
+            timeout: 25,
+            minimum_silence_duration: 800,
           });
         }
         break;
       }
 
-      case "call.gather.ended": {
+      case "call.gather.ended":
+      case "call.speak_and_gather.ended": {
         const transcript = payload.speech_transcript as string;
         const convKey = call_leg_id || call_control_id;
         const conv = conversations.get(convKey);
@@ -420,7 +423,7 @@ Deno.serve(async (req) => {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
-            voice: "Polly.Joanna",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
             language: "en-US",
             client_state: encodeState("responding"),
           });
@@ -452,14 +455,14 @@ Deno.serve(async (req) => {
           console.log(`[call.gather.ended] Will transfer after speaking`);
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
-            voice: "Polly.Joanna",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
             language: "en-US",
             client_state: encodeState("transferring"),
           });
         } else {
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
-            voice: "Polly.Joanna",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
             language: "en-US",
             client_state: encodeState("responding"),
           });
