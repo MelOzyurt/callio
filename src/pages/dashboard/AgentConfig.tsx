@@ -208,7 +208,7 @@ export default function AgentConfig() {
             <CardContent className="space-y-4">
               <div>
                 <Label>Fallback Message</Label>
-                <Textarea defaultValue="I'm sorry, I don't have that information right now. Would you like me to have someone call you back?" className="mt-1.5" rows={2} />
+                <Textarea defaultValue="I'm sorry, I don't have that information right now. Would you like me to have someone call you back?" className="mt-1.5" rows={2} disabled={!editing} />
                 <p className="mt-1 text-xs text-muted-foreground">Used when the AI doesn't know the answer.</p>
               </div>
               <div>
