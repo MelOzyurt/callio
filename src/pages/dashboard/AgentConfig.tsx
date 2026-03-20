@@ -33,6 +33,12 @@ export default function AgentConfig() {
   const [tone, setTone] = useState("friendly");
   const [style, setStyle] = useState("concise");
   const [businessHours, setBusinessHours] = useState<BusinessHoursData>(DEFAULT_BUSINESS_HOURS);
+  const [editing, setEditing] = useState(false);
+
+  const handleSave = () => {
+    // TODO: persist to database
+    setEditing(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -41,7 +47,22 @@ export default function AgentConfig() {
           <h1 className="font-display text-2xl font-bold text-foreground">AI Agent</h1>
           <p className="text-sm text-muted-foreground">Configure how your AI phone agent behaves on calls.</p>
         </div>
-        <Button><Save className="mr-2 h-4 w-4" /> Save Changes</Button>
+        <div className="flex items-center gap-2">
+          {!editing ? (
+            <Button variant="outline" onClick={() => setEditing(true)}>
+              <Pencil className="mr-2 h-4 w-4" /> Edit
+            </Button>
+          ) : (
+            <Button onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" /> Save Changes
+            </Button>
+          )}
+          {!editing && (
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Lock className="h-3 w-3" /> Locked
+            </span>
+          )}
+        </div>
       </div>
 
       <Tabs defaultValue="identity" className="space-y-6">
