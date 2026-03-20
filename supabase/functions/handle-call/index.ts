@@ -6,7 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// In-memory conversation store (per isolate lifetime)
 const conversations = new Map<
   string,
   { messages: Array<{ role: string; content: string }>; callId: string; orgId: string; startedAt: string }
@@ -63,6 +62,7 @@ async function providerAction(
   apiKey: string,
   body: Record<string, unknown> = {}
 ): Promise<void> {
+  console.log(`[providerAction] ${action} for ${callControlId}`, JSON.stringify(body));
   const res = await fetch(
     `https://api.telnyx.com/v2/calls/${callControlId}/actions/${action}`,
     {
@@ -76,7 +76,9 @@ async function providerAction(
   );
   if (!res.ok) {
     const text = await res.text();
-    console.error(`Call action "${action}" failed:`, res.status, text);
+    console.error(`[providerAction] "${action}" FAILED:`, res.status, text);
+  } else {
+    console.log(`[providerAction] "${action}" OK`);
   }
 }
 
@@ -110,7 +112,6 @@ async function getAIResponse(
         })),
       };
     } else {
-      // OpenAI-compatible: covers "lovable" and "openai"
       if (llm.provider === "lovable") {
         url = "https://ai.gateway.lovable.dev/v1/chat/completions";
         headers["Authorization"] = `Bearer ${Deno.env.get("LOVABLE_API_KEY") || ""}`;
@@ -124,11 +125,12 @@ async function getAIResponse(
       };
     }
 
+    console.log(`[AI] Calling ${llm.provider} model=${llm.model}`);
     const res = await fetch(url, { method: "POST", headers, body: JSON.stringify(body) });
 
     if (!res.ok) {
       const text = await res.text();
-      console.error("AI error:", res.status, text);
+      console.error("[AI] error:", res.status, text);
       return "I'm sorry, I couldn't process that. Could you please repeat?";
     }
 
@@ -141,7 +143,7 @@ async function getAIResponse(
     }
     return data.choices?.[0]?.message?.content || "I didn't catch that. Could you repeat?";
   } catch (err) {
-    console.error("AI call failed:", err);
+    console.error("[AI] call failed:", err);
     return "I'm sorry, I'm having technical difficulties. Please try again.";
   }
 }
@@ -159,18 +161,16 @@ function isWithinBusinessHours(bh: Record<string, unknown>): boolean {
     const now = new Date();
     const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
     const local = new Date(utcMs + offsetMin * 60000);
-
     const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const dayName = dayNames[local.getDay()];
     const schedule = (bh.weekly_schedule as Record<string, Record<string, unknown>>)?.[dayName];
     if (!schedule || !schedule.open) return false;
-
     const currentMinutes = local.getHours() * 60 + local.getMinutes();
     const [fh, fm] = ((schedule.from as string) || "09:00").split(":").map(Number);
     const [th, tm] = ((schedule.to as string) || "17:00").split(":").map(Number);
     return currentMinutes >= fh * 60 + fm && currentMinutes < th * 60 + tm;
   } catch {
-    return true; // Default to open on error
+    return true;
   }
 }
 
@@ -183,11 +183,8 @@ function generateBusinessHoursSummary(bh: Record<string, unknown>): string {
       monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
       thursday: "Thursday", friday: "Friday", saturday: "Saturday", sunday: "Sunday",
     };
-
-    const parts: string[] = [];
     const groups: { days: string[]; from: string; to: string }[] = [];
     const closed: string[] = [];
-
     for (const d of days) {
       const s = ws[d];
       if (!s || !s.open) { closed.push(dayLabels[d]); continue; }
@@ -198,18 +195,16 @@ function generateBusinessHoursSummary(bh: Record<string, unknown>): string {
         groups.push({ days: [dayLabels[d]], from: s.from as string, to: s.to as string });
       }
     }
-
+    const parts: string[] = [];
     for (const g of groups) {
       const range = g.days.length > 2 ? `${g.days[0]} to ${g.days[g.days.length - 1]}` : g.days.join(" and ");
       parts.push(`Open ${range} ${g.from}–${g.to} (${bh.timezone || "UTC+0"}).`);
     }
     if (closed.length > 0) parts.push(`Closed ${closed.join(" and ")}.`);
-
     const ph = bh.public_holidays as Record<string, unknown> | undefined;
     if (ph?.enabled && ph?.closed_on_holidays) {
       parts.push(`Automatically closed on ${ph.country || "GB"} public holidays.`);
     }
-
     return parts.join(" ");
   } catch {
     return "";
@@ -220,30 +215,37 @@ function buildSystemPrompt(agent: Record<string, unknown>, org: Record<string, u
   const parts = [
     `You are ${agent.name || "an AI assistant"}, a phone assistant for ${org.name || "our business"}.`,
   ];
-
   if (agent.business_description) {
     parts.push(`About the business: ${agent.business_description}`);
   }
-
-  // Business hours from structured data
   const bh = agent.business_hours as Record<string, unknown> | undefined;
   if (bh) {
     const summary = generateBusinessHoursSummary(bh);
     if (summary) parts.push(`Business hours: ${summary}`);
   }
-
   if (agent.special_instructions) {
     parts.push(`Special instructions: ${agent.special_instructions}`);
   }
-
   parts.push(
     "Respond conversationally and concisely (max 2-3 sentences).",
     "If you cannot help the caller, let them know you will transfer them to a team member.",
     `Your tone should be ${agent.tone || "professional"} and your style ${agent.response_style || "concise"}.`,
     `Speak in ${agent.language === "tr" ? "Turkish" : "English"}.`
   );
-
   return parts.join("\n");
+}
+
+function encodeState(phase: string, extra: Record<string, unknown> = {}): string {
+  return btoa(JSON.stringify({ phase, ...extra }));
+}
+
+function decodeState(clientState: string | undefined): Record<string, unknown> {
+  if (!clientState) return {};
+  try {
+    return JSON.parse(atob(clientState));
+  } catch {
+    return {};
+  }
 }
 
 Deno.serve(async (req) => {
@@ -251,7 +253,6 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Always respond 200 quickly to webhook
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -272,6 +273,8 @@ Deno.serve(async (req) => {
     const eventType = event?.data?.event_type;
     const payload = event?.data?.payload;
 
+    console.log(`[Event] ${eventType || "unknown"}`);
+
     if (!eventType || !payload) {
       return new Response(JSON.stringify({ ok: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -279,8 +282,9 @@ Deno.serve(async (req) => {
     }
 
     const { call_control_id, call_leg_id, to, from } = payload;
+    console.log(`[Event] call_control_id=${call_control_id}, to=${to}, from=${from}`);
 
-    // Find organization by virtual number or query param
+    // Find organization
     let organizationId = orgIdParam || "";
     let agent: Record<string, unknown> = {};
     let org: Record<string, unknown> = {};
@@ -307,6 +311,8 @@ Deno.serve(async (req) => {
       });
     }
 
+    console.log(`[Event] Organization found: ${organizationId}`);
+
     // Fetch org and agent data
     const [orgResult, agentResult] = await Promise.all([
       supabase.from("organizations").select("*").eq("id", organizationId).single(),
@@ -316,14 +322,17 @@ Deno.serve(async (req) => {
     if (orgResult.data) org = orgResult.data as Record<string, unknown>;
     if (agentResult.data) agent = agentResult.data as Record<string, unknown>;
 
+    console.log(`[Event] Agent loaded: name=${agent.name}, greeting=${agent.greeting}, org=${org.name}`);
+
     const platformConfig = await getPlatformConfig(supabase);
     const apiKey = platformConfig.providerApiKey;
     const llmConfig = platformConfig.llm;
 
-    // Handle events
+    console.log(`[Event] Provider API key present: ${!!apiKey}, LLM: ${llmConfig.provider}/${llmConfig.model}`);
+
     switch (eventType) {
       case "call.initiated": {
-        // Log call to database
+        console.log(`[call.initiated] Answering call from ${from} to ${to}`);
         const { data: callData } = await supabase.from("calls").insert({
           organization_id: organizationId,
           from_number: from || "unknown",
@@ -334,7 +343,6 @@ Deno.serve(async (req) => {
           started_at: new Date().toISOString(),
         }).select("id").single();
 
-        // Initialize conversation store
         conversations.set(call_leg_id || call_control_id, {
           messages: [],
           callId: callData?.id || "",
@@ -342,40 +350,60 @@ Deno.serve(async (req) => {
           startedAt: new Date().toISOString(),
         });
 
-        // Answer the call
         await providerAction(call_control_id, "answer", apiKey);
         break;
       }
 
       case "call.answered": {
-        // Check business hours to determine greeting
+        // Determine greeting with fallback chain
         const bh = agent.business_hours as Record<string, unknown> | undefined;
         const withinHours = bh ? isWithinBusinessHours(bh) : true;
-        
+
         let greeting: string;
         if (!withinHours && agent.after_hours_greeting) {
           greeting = agent.after_hours_greeting as string;
+        } else if (agent.greeting) {
+          greeting = agent.greeting as string;
+        } else if (org.name) {
+          greeting = `Hello, thank you for calling ${org.name}. How can I help you today?`;
         } else {
-          greeting = (agent.greeting as string) || "Hello, thank you for calling. How can I help you today?";
+          greeting = "Hello, thank you for calling. How can I help you today?";
         }
+
+        console.log(`[call.answered] Using greeting: "${greeting}"`);
+        console.log(`[call.answered] agent.greeting="${agent.greeting}", org.name="${org.name}", withinHours=${withinHours}`);
 
         await providerAction(call_control_id, "speak", apiKey, {
           payload: greeting,
           voice: "Polly.Joanna",
           language: "en-US",
+          client_state: encodeState("greeting"),
         });
         break;
       }
 
       case "call.speak.ended": {
-        // After speaking, gather caller input
-        await providerAction(call_control_id, "gather", apiKey, {
-          gather_method: "speech",
-          speech_model: "enhanced",
-          language: (agent.language as string) === "tr" ? "tr" : "en",
-          speech_timeout: 5,
-          timeout: 15,
-        });
+        const state = decodeState(payload.client_state as string | undefined);
+        const phase = state.phase as string || "unknown";
+        console.log(`[call.speak.ended] Phase: ${phase}`);
+
+        if (phase === "transferring" && agent.transfer_number) {
+          console.log(`[call.speak.ended] Transferring to ${agent.transfer_number}`);
+          await providerAction(call_control_id, "transfer", apiKey, {
+            to: agent.transfer_number,
+          });
+        } else {
+          // After greeting or AI response → gather speech
+          console.log(`[call.speak.ended] Starting gather (speech)`);
+          await providerAction(call_control_id, "gather", apiKey, {
+            gather_method: "speech",
+            speech_model: "enhanced",
+            language: (agent.language as string) === "tr" ? "tr" : "en",
+            speech_timeout: 3,
+            timeout: 20,
+            gather_after_silence: 1,
+          });
+        }
         break;
       }
 
@@ -384,28 +412,30 @@ Deno.serve(async (req) => {
         const convKey = call_leg_id || call_control_id;
         const conv = conversations.get(convKey);
 
+        console.log(`[call.gather.ended] Transcript: "${transcript || "(empty)"}"`);
+
         if (!transcript || transcript.trim() === "") {
-          // No speech detected — ask again or end
+          console.log(`[call.gather.ended] No speech detected, asking to repeat`);
           await providerAction(call_control_id, "speak", apiKey, {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
             voice: "Polly.Joanna",
             language: "en-US",
+            client_state: encodeState("responding"),
           });
           break;
         }
 
-        // Add caller message to history
         if (conv) {
           conv.messages.push({ role: "user", content: transcript });
         }
 
-        // Get AI response
         const systemPrompt = buildSystemPrompt(agent, org);
         const aiResponse = await getAIResponse(conv?.messages || [{ role: "user", content: transcript }], systemPrompt, llmConfig);
 
-        // Add assistant message to history
+        console.log(`[call.gather.ended] AI response: "${aiResponse}"`);
+
         if (conv) {
           conv.messages.push({ role: "assistant", content: aiResponse });
         }
@@ -419,19 +449,19 @@ Deno.serve(async (req) => {
             lowerResponse.includes("i'll transfer"));
 
         if (shouldTransfer && agent.transfer_number) {
-          // Announce transfer then transfer
+          console.log(`[call.gather.ended] Will transfer after speaking`);
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
             voice: "Polly.Joanna",
             language: "en-US",
-            client_state: btoa(JSON.stringify({ action: "transfer" })),
+            client_state: encodeState("transferring"),
           });
         } else {
-          // Speak AI response → will trigger speak.ended → gather again
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
             voice: "Polly.Joanna",
             language: "en-US",
+            client_state: encodeState("responding"),
           });
         }
         break;
@@ -440,12 +470,12 @@ Deno.serve(async (req) => {
       case "call.hangup": {
         const convKey = call_leg_id || call_control_id;
         const conv = conversations.get(convKey);
+        console.log(`[call.hangup] Call ended, messages: ${conv?.messages?.length || 0}`);
 
         if (conv?.callId) {
           const startTime = new Date(conv.startedAt).getTime();
           const durationSeconds = Math.round((Date.now() - startTime) / 1000);
 
-          // Update call record
           await supabase
             .from("calls")
             .update({
@@ -456,7 +486,6 @@ Deno.serve(async (req) => {
             })
             .eq("id", conv.callId);
 
-          // Save transcript if there were messages
           if (conv.messages.length > 0) {
             const lastUserMsg = [...conv.messages].reverse().find((m) => m.role === "user");
             await supabase.from("transcripts").insert({
@@ -469,35 +498,18 @@ Deno.serve(async (req) => {
                 channel: m.role === "user" ? "stt" : "tts",
                 confidence: m.role === "user" ? 0.9 : 1.0,
               })),
-              summary: conv.messages.length > 0
-                ? `Call with ${conv.messages.filter((m) => m.role === "user").length} caller messages`
-                : null,
+              summary: `Call with ${conv.messages.filter((m) => m.role === "user").length} caller messages`,
               extracted_intent: lastUserMsg?.content?.slice(0, 200) || null,
             });
           }
         }
 
-        // Clean up
         conversations.delete(convKey);
         break;
       }
 
       default: {
-        // Check for transfer action from client_state
-        if (payload.client_state) {
-          try {
-            const state = JSON.parse(atob(payload.client_state as string));
-            if (state.action === "transfer" && agent.transfer_number) {
-              await providerAction(call_control_id, "transfer", apiKey, {
-                to: agent.transfer_number,
-              });
-              break;
-            }
-          } catch {
-            // Ignore invalid client_state
-          }
-        }
-        // Unknown event — acknowledge silently
+        console.log(`[default] Unhandled event: ${eventType}`);
         break;
       }
     }
@@ -506,8 +518,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Webhook handler error:", err instanceof Error ? err.message : err);
-    // Always return 200 to prevent webhook retries
+    console.error("[ERROR] Webhook handler:", err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
