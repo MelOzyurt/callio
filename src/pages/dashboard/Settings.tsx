@@ -15,12 +15,14 @@ import BusinessHours, { type BusinessHoursData } from "@/components/BusinessHour
 
 export default function SettingsPage() {
   const { data: org, isLoading: orgLoading } = useOrganization();
+  const { data: agent } = useAiAgent();
   const orgId = useOrgId();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [businessHours, setBusinessHours] = useState<BusinessHoursData | null>(null);
 
   // Form state
   const [form, setForm] = useState({
