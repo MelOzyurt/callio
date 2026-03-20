@@ -332,7 +332,7 @@ export default function AgentConfig() {
             <CardContent className="space-y-4">
               <div>
                 <Label>Notification Email</Label>
-                <Input defaultValue="john@mariassalon.com" className="mt-1.5" />
+                <Input defaultValue="john@mariassalon.com" className="mt-1.5" disabled={!editing} />
                 <p className="mt-1 text-xs text-muted-foreground">Where to send call summaries and action notifications.</p>
               </div>
               <div>
