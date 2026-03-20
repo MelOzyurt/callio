@@ -423,7 +423,7 @@ Deno.serve(async (req) => {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
-            voice: "Polly.Joanna",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
             language: "en-US",
             client_state: encodeState("responding"),
           });
