@@ -310,6 +310,7 @@ Deno.serve(async (req) => {
     const payload = event?.data?.payload;
 
     console.log(`[Event] ${eventType || "unknown"}`);
+    console.log("[WEBHOOK] Full event:", JSON.stringify(event?.data));
 
     if (!eventType || !payload) {
       return new Response(JSON.stringify({ ok: true }), {
@@ -459,14 +460,27 @@ Deno.serve(async (req) => {
           await providerAction(call_control_id, "transfer", apiKey, {
             to: agent.transfer_number,
           });
+        } else if (phase === "greeting" || phase === "responding") {
+          console.log(`[call.speak.ended] Fallback: starting regular gather for phase=${phase}`);
+          await providerAction(call_control_id, "gather", apiKey, {
+            gather_method: "speech",
+            speech_model: "enhanced",
+            language: "en-US",
+            speech_timeout: "auto",
+            timeout: 25,
+            minimum_silence_duration: 800,
+            client_state: makeState(phase),
+          });
         } else {
-          console.log(`[call.speak.ended] Unexpected speak.ended, ignoring`);
+          console.log(`[call.speak.ended] Unexpected speak.ended phase=${phase}, ignoring`);
         }
         break;
       }
 
       case "call.gather.ended":
-      case "call.speak_and_gather.ended": {
+      case "call.speak_and_gather.ended":
+      case "call.gather_using_speak.ended":
+      case "call.gather_stopped": {
         const transcript = payload.speech_transcript as string;
 
         console.log(`[gather] Transcript: "${transcript || "(empty)"}"`);
