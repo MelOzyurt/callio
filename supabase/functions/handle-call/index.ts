@@ -514,14 +514,26 @@ Deno.serve(async (req) => {
             lower.includes("let me transfer") ||
             lower.includes("i'll transfer"));
 
-        const nextPhase = shouldTransfer && agent.transfer_number ? "transferring" : "responding";
-
-        await providerAction(call_control_id, "speak", apiKey, {
-          payload: aiResponse,
-          voice: VOICE,
-          language: "en-US",
-          client_state: makeState(nextPhase),
-        });
+        if (shouldTransfer && agent.transfer_number) {
+          await providerAction(call_control_id, "speak", apiKey, {
+            payload: aiResponse,
+            voice: VOICE,
+            language: "en-US",
+            client_state: makeState("transferring"),
+          });
+        } else {
+          await providerAction(call_control_id, "gather_using_speak", apiKey, {
+            payload: aiResponse,
+            voice: VOICE,
+            language: "en-US",
+            gather_method: "speech",
+            speech_model: "enhanced",
+            speech_timeout: "auto",
+            timeout: 30,
+            minimum_silence_duration: 800,
+            client_state: makeState("responding"),
+          });
+        }
         break;
       }
 
