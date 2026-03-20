@@ -460,16 +460,7 @@ Deno.serve(async (req) => {
             to: agent.transfer_number,
           });
         } else {
-          console.log(`[call.speak.ended] Starting gather`);
-          await providerAction(call_control_id, "gather", apiKey, {
-            gather_method: "speech",
-            speech_model: "enhanced",
-            language: "en",
-            speech_timeout: 5,
-            timeout: 30,
-            minimum_silence_duration: 1500,
-            client_state: makeState("gathering"),
-          });
+          console.log(`[call.speak.ended] Unexpected speak.ended, ignoring`);
         }
         break;
       }
