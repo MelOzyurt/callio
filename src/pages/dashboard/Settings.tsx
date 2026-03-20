@@ -73,7 +73,7 @@ export default function SettingsPage() {
       if (businessHours && agent?.id) {
         const { error: agentError } = await supabase
           .from("ai_agents")
-          .update({ business_hours: businessHours as unknown as Record<string, unknown> })
+          .update({ business_hours: JSON.parse(JSON.stringify(businessHours)) })
           .eq("id", agent.id);
         if (agentError) throw agentError;
         queryClient.invalidateQueries({ queryKey: ["ai-agent"] });
