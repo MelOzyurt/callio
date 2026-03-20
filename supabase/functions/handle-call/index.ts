@@ -455,7 +455,7 @@ Deno.serve(async (req) => {
           console.log(`[call.gather.ended] Will transfer after speaking`);
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
-            voice: "Polly.Joanna",
+            voice: "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877",
             language: "en-US",
             client_state: encodeState("transferring"),
           });
