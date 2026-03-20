@@ -4,18 +4,21 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Save, Trash2, Upload, Image, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Save, Trash2, Upload, Image, Loader2, Phone, Info } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization, useOrgId } from "@/hooks/use-organization";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useAiAgent } from "@/hooks/use-ai-agent";
+import { usePhoneSetup } from "@/hooks/use-phone-setup";
 import BusinessHours, { type BusinessHoursData } from "@/components/BusinessHours";
 
 export default function SettingsPage() {
   const { data: org, isLoading: orgLoading } = useOrganization();
   const { data: agent } = useAiAgent();
+  const { phoneSetup } = usePhoneSetup();
   const orgId = useOrgId();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +27,6 @@ export default function SettingsPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [businessHours, setBusinessHours] = useState<BusinessHoursData | null>(null);
 
-  // Form state
   const [form, setForm] = useState({
     name: "",
     industry: "",
@@ -34,7 +36,8 @@ export default function SettingsPage() {
     timezone: "",
   });
 
-  // Sync form when org data loads
+  const hasRequestedNumber = !!(org as Record<string, unknown>)?.requested_business_number;
+
   useEffect(() => {
     if (org) {
       setForm({
@@ -57,19 +60,25 @@ export default function SettingsPage() {
     if (!orgId) return;
     setSaving(true);
     try {
+      const orgUpdate: Record<string, unknown> = {
+        name: form.name,
+        industry: form.industry || null,
+        location: form.location || null,
+        website: form.website || null,
+        primary_business_number: form.primary_business_number || null,
+        timezone: form.timezone || "UTC",
+      };
+
+      // Set requested_business_number on first save (immutable after)
+      if (!hasRequestedNumber && form.primary_business_number) {
+        orgUpdate.requested_business_number = form.primary_business_number;
+      }
+
       const { error } = await supabase
         .from("organizations")
-        .update({
-          name: form.name,
-          industry: form.industry || null,
-          location: form.location || null,
-          website: form.website || null,
-          primary_business_number: form.primary_business_number || null,
-          timezone: form.timezone || "UTC",
-        })
+        .update(orgUpdate as never)
         .eq("id", orgId);
 
-      // Save business hours to ai_agents if changed
       if (businessHours && agent?.id) {
         const { error: agentError } = await supabase
           .from("ai_agents")
@@ -81,8 +90,9 @@ export default function SettingsPage() {
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["organization"] });
       toast.success("Settings saved.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save settings.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to save settings.";
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -113,8 +123,9 @@ export default function SettingsPage() {
       setLogoPreview(logoUrl);
       queryClient.invalidateQueries({ queryKey: ["organization"] });
       toast.success("Logo uploaded.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload logo.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to upload logo.";
+      toast.error(message);
     } finally {
       setUploading(false);
     }
@@ -132,12 +143,15 @@ export default function SettingsPage() {
       setLogoPreview(null);
       queryClient.invalidateQueries({ queryKey: ["organization"] });
       toast.success("Logo removed.");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to remove logo.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to remove logo.";
+      toast.error(message);
     } finally {
       setUploading(false);
     }
   };
+
+  const pairingStatus = (phoneSetup as Record<string, unknown>)?.pairing_status as string | undefined;
 
   if (orgLoading) {
     return (
@@ -189,37 +203,100 @@ export default function SettingsPage() {
                   <Input value={form.website} onChange={e => updateField("website", e.target.value)} className="mt-1.5" />
                 </div>
                 <div>
-                  <Label>Business Phone</Label>
-                  <Input value={form.primary_business_number} onChange={e => updateField("primary_business_number", e.target.value)} className="mt-1.5" />
-                </div>
-                <div>
                   <Label>Timezone</Label>
                   <Input value={form.timezone} onChange={e => updateField("timezone", e.target.value)} className="mt-1.5" />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Phone Number & AI Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-base flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Your Business Phone Number
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
-                <Label>Business Hours</Label>
-                <div className="mt-2">
-                  <BusinessHours
-                    value={businessHours ?? (agent?.business_hours as unknown as BusinessHoursData) ?? {
-                      timezone: "UTC+0",
-                      weekly_schedule: {
-                        monday: { open: true, from: "09:00", to: "17:00" },
-                        tuesday: { open: true, from: "09:00", to: "17:00" },
-                        wednesday: { open: true, from: "09:00", to: "17:00" },
-                        thursday: { open: true, from: "09:00", to: "17:00" },
-                        friday: { open: true, from: "09:00", to: "17:00" },
-                        saturday: { open: false, from: "09:00", to: "13:00" },
-                        sunday: { open: false, from: "09:00", to: "13:00" },
-                      },
-                      public_holidays: { enabled: true, country: "GB", closed_on_holidays: true },
-                      custom_closures: [],
-                      custom_openings: [],
-                    }}
-                    onChange={setBusinessHours}
-                  />
-                </div>
+                {hasRequestedNumber ? (
+                  <div>
+                    <Input
+                      value={form.primary_business_number}
+                      readOnly
+                      className="mt-1.5 bg-muted/50"
+                    />
+                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Info className="h-3 w-3" />
+                      Contact support to change your business number.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <Input
+                      value={form.primary_business_number}
+                      onChange={e => updateField("primary_business_number", e.target.value)}
+                      placeholder="+44 XXXX XXXXXX"
+                      className="mt-1.5"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      The number your customers currently call. We will set up AI answering on this number.
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {/* Pairing status card */}
+              <div className="rounded-lg border p-4">
+                {pairingStatus === "paired" ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200 hover:bg-emerald-500/15">AI Active</Badge>
+                    </div>
+                    <p className="text-sm text-foreground">Your AI assistant is answering calls on this number.</p>
+                    <p className="text-xs text-muted-foreground">Virtual line: platform-managed</p>
+                  </div>
+                ) : pairingStatus === "suspended" ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="destructive">Suspended</Badge>
+                    </div>
+                    <p className="text-sm text-foreground">AI answering is currently paused. Contact support.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-amber-500/15 text-amber-700 border-amber-200 hover:bg-amber-500/15">Awaiting setup</Badge>
+                    </div>
+                    <p className="text-sm text-foreground">Our team will activate AI answering on your number shortly.</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="font-display text-base">Business Hours</CardTitle></CardHeader>
+            <CardContent>
+              <BusinessHours
+                value={businessHours ?? (agent?.business_hours as unknown as BusinessHoursData) ?? {
+                  timezone: "UTC+0",
+                  weekly_schedule: {
+                    monday: { open: true, from: "09:00", to: "17:00" },
+                    tuesday: { open: true, from: "09:00", to: "17:00" },
+                    wednesday: { open: true, from: "09:00", to: "17:00" },
+                    thursday: { open: true, from: "09:00", to: "17:00" },
+                    friday: { open: true, from: "09:00", to: "17:00" },
+                    saturday: { open: false, from: "09:00", to: "13:00" },
+                    sunday: { open: false, from: "09:00", to: "13:00" },
+                  },
+                  public_holidays: { enabled: true, country: "GB", closed_on_holidays: true },
+                  custom_closures: [],
+                  custom_openings: [],
+                }}
+                onChange={setBusinessHours}
+              />
             </CardContent>
           </Card>
         </TabsContent>
