@@ -180,8 +180,8 @@ export default function AgentConfig() {
               </div>
               <div>
                 <Label>Response Style</Label>
-                <Select value={style} onValueChange={setStyle}>
-                  <SelectTrigger className="mt-1.5"><SelectValue /></SelectTrigger>
+                <Select value={style} onValueChange={setStyle} disabled={!editing}>
+                  <SelectTrigger className="mt-1.5" disabled={!editing}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="concise">Concise — Short & direct answers</SelectItem>
                     <SelectItem value="detailed">Detailed — Thorough explanations</SelectItem>
