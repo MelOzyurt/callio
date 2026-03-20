@@ -108,8 +108,10 @@ export default function AgentConfig() {
                 </div>
               </div>
               <div>
-                <Label>Opening Hours</Label>
-                <Input defaultValue="Mon-Fri 9am-7pm, Sat 9am-5pm" className="mt-1.5" />
+                <Label>Business Hours</Label>
+                <div className="mt-2">
+                  <BusinessHours value={businessHours} onChange={setBusinessHours} />
+                </div>
               </div>
               <div>
                 <Label>Special Instructions</Label>
