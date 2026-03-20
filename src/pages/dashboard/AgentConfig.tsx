@@ -287,7 +287,7 @@ export default function AgentConfig() {
                       <p className="text-sm font-medium text-foreground">{rule.label}</p>
                       <p className="text-xs text-muted-foreground">{rule.desc}</p>
                     </div>
-                    <Switch defaultChecked={rule.enabled} />
+                    <Switch defaultChecked={rule.enabled} disabled={!editing} />
                   </div>
                 ))}
               </div>
