@@ -436,10 +436,15 @@ Deno.serve(async (req) => {
 
         console.log(`[call.answered] Greeting: "${greeting}", callId: ${callId}`);
 
-        await providerAction(call_control_id, "speak", apiKey, {
+        await providerAction(call_control_id, "gather_using_speak", apiKey, {
           payload: greeting,
           voice: VOICE,
           language: "en-US",
+          gather_method: "speech",
+          speech_model: "enhanced",
+          speech_timeout: "auto",
+          timeout: 30,
+          minimum_silence_duration: 800,
           client_state: makeState("greeting"),
         });
         break;
