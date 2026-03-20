@@ -91,7 +91,7 @@ export default function AgentConfig() {
               </div>
               <div>
                 <Label>Agent Name</Label>
-                <Input value={agentName} onChange={e => setAgentName(e.target.value)} className="mt-1.5" />
+                <Input value={agentName} onChange={e => setAgentName(e.target.value)} className="mt-1.5" disabled={!editing} />
                 <p className="mt-1 text-xs text-muted-foreground">The name your agent uses to introduce itself.</p>
               </div>
               <div>
