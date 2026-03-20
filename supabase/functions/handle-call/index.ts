@@ -473,12 +473,17 @@ Deno.serve(async (req) => {
 
         if (!transcript || transcript.trim() === "") {
           console.log(`[gather] No speech, asking to repeat`);
-          await providerAction(call_control_id, "speak", apiKey, {
+          await providerAction(call_control_id, "gather_using_speak", apiKey, {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
             voice: VOICE,
             language: "en-US",
+            gather_method: "speech",
+            speech_model: "enhanced",
+            speech_timeout: "auto",
+            timeout: 30,
+            minimum_silence_duration: 800,
             client_state: makeState("responding"),
           });
           break;
