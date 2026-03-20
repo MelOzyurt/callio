@@ -436,10 +436,15 @@ Deno.serve(async (req) => {
 
         console.log(`[call.answered] Greeting: "${greeting}", callId: ${callId}`);
 
-        await providerAction(call_control_id, "speak", apiKey, {
+        await providerAction(call_control_id, "gather_using_speak", apiKey, {
           payload: greeting,
           voice: VOICE,
           language: "en-US",
+          gather_method: "speech",
+          speech_model: "enhanced",
+          speech_timeout: "auto",
+          timeout: 30,
+          minimum_silence_duration: 800,
           client_state: makeState("greeting"),
         });
         break;
@@ -455,16 +460,7 @@ Deno.serve(async (req) => {
             to: agent.transfer_number,
           });
         } else {
-          console.log(`[call.speak.ended] Starting gather`);
-          await providerAction(call_control_id, "gather", apiKey, {
-            gather_method: "speech",
-            speech_model: "enhanced",
-            language: "en",
-            speech_timeout: 5,
-            timeout: 30,
-            minimum_silence_duration: 1500,
-            client_state: makeState("gathering"),
-          });
+          console.log(`[call.speak.ended] Unexpected speak.ended, ignoring`);
         }
         break;
       }
@@ -477,12 +473,17 @@ Deno.serve(async (req) => {
 
         if (!transcript || transcript.trim() === "") {
           console.log(`[gather] No speech, asking to repeat`);
-          await providerAction(call_control_id, "speak", apiKey, {
+          await providerAction(call_control_id, "gather_using_speak", apiKey, {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
             voice: VOICE,
             language: "en-US",
+            gather_method: "speech",
+            speech_model: "enhanced",
+            speech_timeout: "auto",
+            timeout: 30,
+            minimum_silence_duration: 800,
             client_state: makeState("responding"),
           });
           break;
@@ -513,14 +514,26 @@ Deno.serve(async (req) => {
             lower.includes("let me transfer") ||
             lower.includes("i'll transfer"));
 
-        const nextPhase = shouldTransfer && agent.transfer_number ? "transferring" : "responding";
-
-        await providerAction(call_control_id, "speak", apiKey, {
-          payload: aiResponse,
-          voice: VOICE,
-          language: "en-US",
-          client_state: makeState(nextPhase),
-        });
+        if (shouldTransfer && agent.transfer_number) {
+          await providerAction(call_control_id, "speak", apiKey, {
+            payload: aiResponse,
+            voice: VOICE,
+            language: "en-US",
+            client_state: makeState("transferring"),
+          });
+        } else {
+          await providerAction(call_control_id, "gather_using_speak", apiKey, {
+            payload: aiResponse,
+            voice: VOICE,
+            language: "en-US",
+            gather_method: "speech",
+            speech_model: "enhanced",
+            speech_timeout: "auto",
+            timeout: 30,
+            minimum_silence_duration: 800,
+            client_state: makeState("responding"),
+          });
+        }
         break;
       }
 
