@@ -14,9 +14,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { usePhoneSetup } from "@/hooks/use-phone-setup";
-import { useOrganization } from "@/hooks/use-organization";
+import { useOrganization, useOrgId } from "@/hooks/use-organization";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useState } from "react";
 
 function deriveCountry(number: string | null): string {
   if (!number) return "Unknown";
