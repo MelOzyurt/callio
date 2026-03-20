@@ -267,7 +267,7 @@ export default function AgentConfig() {
             <CardContent className="space-y-4">
               <div>
                 <Label>Transfer Phone Number</Label>
-                <Input defaultValue="+1 (555) 000-0000" className="mt-1.5" />
+                <Input defaultValue="+1 (555) 000-0000" className="mt-1.5" disabled={!editing} />
                 <p className="mt-1 text-xs text-muted-foreground">Calls are transferred here when the AI escalates.</p>
               </div>
               <div>
