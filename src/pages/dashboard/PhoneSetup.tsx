@@ -50,6 +50,26 @@ export default function PhoneSetup() {
     isUpdating,
   } = usePhoneSetup();
   const { data: org } = useOrganization();
+  const orgId = useOrgId();
+  const [isTestingCall, setIsTestingCall] = useState(false);
+
+  const handleTestCall = async () => {
+    if (!orgId) return;
+    setIsTestingCall(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("make-test-call", {
+        body: { organization_id: orgId },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(data?.message || "Test call initiated!");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to initiate test call";
+      toast.error(message);
+    } finally {
+      setIsTestingCall(false);
+    }
+  };
 
   const virtualNumber = phoneSetup?.virtual_number;
   const isProvisioned = !!virtualNumber;
