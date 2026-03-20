@@ -198,8 +198,27 @@ export default function SettingsPage() {
                 </div>
               </div>
               <div>
-                <Label>Opening Hours</Label>
-                <Input value={form.opening_hours} onChange={e => updateField("opening_hours", e.target.value)} className="mt-1.5" />
+                <Label>Business Hours</Label>
+                <div className="mt-2">
+                  <BusinessHours
+                    value={businessHours ?? (agent?.business_hours as unknown as BusinessHoursData) ?? {
+                      timezone: "UTC+0",
+                      weekly_schedule: {
+                        monday: { open: true, from: "09:00", to: "17:00" },
+                        tuesday: { open: true, from: "09:00", to: "17:00" },
+                        wednesday: { open: true, from: "09:00", to: "17:00" },
+                        thursday: { open: true, from: "09:00", to: "17:00" },
+                        friday: { open: true, from: "09:00", to: "17:00" },
+                        saturday: { open: false, from: "09:00", to: "13:00" },
+                        sunday: { open: false, from: "09:00", to: "13:00" },
+                      },
+                      public_holidays: { enabled: true, country: "GB", closed_on_holidays: true },
+                      custom_closures: [],
+                      custom_openings: [],
+                    }}
+                    onChange={setBusinessHours}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>
