@@ -32,6 +32,7 @@ export default function AgentConfig() {
   const [description, setDescription] = useState("A premium hair salon offering cuts, coloring, styling, and treatments. Located in San Francisco, CA. Open Mon-Fri 9am-7pm, Sat 9am-5pm.");
   const [tone, setTone] = useState("friendly");
   const [style, setStyle] = useState("concise");
+  const [businessHours, setBusinessHours] = useState<BusinessHoursData>(DEFAULT_BUSINESS_HOURS);
 
   return (
     <div className="space-y-6">
