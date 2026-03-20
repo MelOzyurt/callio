@@ -42,7 +42,6 @@ export default function SettingsPage() {
         industry: org.industry ?? "",
         location: org.location ?? "",
         website: org.website ?? "",
-        opening_hours: org.opening_hours ?? "",
         primary_business_number: org.primary_business_number ?? "",
         timezone: org.timezone ?? "UTC",
       });
