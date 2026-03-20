@@ -64,11 +64,20 @@ export default function SettingsPage() {
           industry: form.industry || null,
           location: form.location || null,
           website: form.website || null,
-          opening_hours: form.opening_hours || null,
           primary_business_number: form.primary_business_number || null,
           timezone: form.timezone || "UTC",
         })
         .eq("id", orgId);
+
+      // Save business hours to ai_agents if changed
+      if (businessHours && agent?.id) {
+        const { error: agentError } = await supabase
+          .from("ai_agents")
+          .update({ business_hours: businessHours as unknown as Record<string, unknown> })
+          .eq("id", agent.id);
+        if (agentError) throw agentError;
+        queryClient.invalidateQueries({ queryKey: ["ai-agent"] });
+      }
       if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ["organization"] });
       toast.success("Settings saved.");
