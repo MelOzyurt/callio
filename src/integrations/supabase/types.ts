@@ -377,6 +377,7 @@ export type Database = {
           metadata: Json
           name: string
           organization_id: string
+          parent_id: string | null
           sort_order: number
           type: string
           updated_at: string
@@ -389,6 +390,7 @@ export type Database = {
           metadata?: Json
           name: string
           organization_id: string
+          parent_id?: string | null
           sort_order?: number
           type: string
           updated_at?: string
@@ -401,6 +403,7 @@ export type Database = {
           metadata?: Json
           name?: string
           organization_id?: string
+          parent_id?: string | null
           sort_order?: number
           type?: string
           updated_at?: string
@@ -411,6 +414,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_items_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_items"
             referencedColumns: ["id"]
           },
         ]
