@@ -141,6 +141,13 @@ export default function AdminSettings() {
     setLlmEditing(false);
   };
 
+  const resetSttFields = () => {
+    if (!settings) return;
+    const s = settings as Record<string, unknown>;
+    setDeepgramApiKey((s.deepgram_api_key as string) ?? "");
+    setSttEditing(false);
+  };
+
   // When LLM provider changes, set a sensible default model
   const handleLlmProviderChange = (val: string) => {
     setLlmProvider(val);
