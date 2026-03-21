@@ -22,7 +22,7 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [businessHours, setBusinessHours] = useState<BusinessHoursData | null>(null);
+  
 
   const [form, setForm] = useState({
     name: "",
