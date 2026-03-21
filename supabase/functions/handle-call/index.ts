@@ -184,12 +184,37 @@ function isWithinBusinessHours(bh: Record<string, unknown>): boolean {
     const local = new Date(utcMs + offsetMin * 60000);
     const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const dayName = dayNames[local.getDay()];
-    const schedule = (bh.weekly_schedule as Record<string, Record<string, unknown>>)?.[dayName];
-    if (!schedule || !schedule.open) return false;
+    const ws = bh.weekly_schedule as Record<string, Record<string, unknown>> | undefined;
+    const schedule = ws?.[dayName];
+    if (!schedule || !schedule.open) {
+      // Check if previous day has overnight hours that extend into today
+      const prevDayIndex = (local.getDay() + 6) % 7;
+      const prevDayName = dayNames[prevDayIndex];
+      const prevSchedule = ws?.[prevDayName];
+      if (prevSchedule?.open && prevSchedule?.overnight) {
+        const currentMinutes = local.getHours() * 60 + local.getMinutes();
+        const [th, tm] = ((prevSchedule.to as string) || "00:00").split(":").map(Number);
+        const toMin = th * 60 + tm;
+        if (currentMinutes < toMin) return true;
+      }
+      return false;
+    }
+
+    // 24h check
+    if (schedule.is24h) return true;
+
     const currentMinutes = local.getHours() * 60 + local.getMinutes();
     const [fh, fm] = ((schedule.from as string) || "09:00").split(":").map(Number);
     const [th, tm] = ((schedule.to as string) || "17:00").split(":").map(Number);
-    return currentMinutes >= fh * 60 + fm && currentMinutes < th * 60 + tm;
+    const fromMin = fh * 60 + fm;
+    const toMin = th * 60 + tm;
+
+    if (schedule.overnight) {
+      // Overnight: open from "from" until midnight (today's portion)
+      return currentMinutes >= fromMin;
+    }
+
+    return currentMinutes >= fromMin && currentMinutes < toMin;
   } catch {
     return true;
   }
