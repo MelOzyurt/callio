@@ -630,6 +630,87 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
 
+        {/* Speech-to-Text (Deepgram) */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="font-display text-base flex items-center gap-2">
+              <Mic className="h-4 w-4" /> Speech-to-Text (STT)
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {sttEditing && (
+                <Button variant="ghost" size="sm" onClick={resetSttFields}>
+                  <X className="mr-2 h-3.5 w-3.5" /> Cancel
+                </Button>
+              )}
+              {!sttEditing && settings && (
+                <Button variant="outline" size="sm" onClick={() => setSttEditing(true)}>
+                  <Pencil className="mr-2 h-3.5 w-3.5" /> Edit
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <fieldset disabled={!sttEditing && !!settings} className="space-y-6">
+              <p className="text-sm text-muted-foreground">
+                Configure the Deepgram API key for high-accuracy speech recognition on 8kHz telephony audio (PCMA/G.711).
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Deepgram API Key</Label>
+                  <div className="relative mt-1.5">
+                    <Input
+                      type={showDeepgramApiKey ? "text" : "password"}
+                      placeholder="Enter Deepgram API key"
+                      value={deepgramApiKey}
+                      onChange={e => setDeepgramApiKey(e.target.value)}
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-10 w-10"
+                      onClick={() => setShowDeepgramApiKey(!showDeepgramApiKey)}
+                    >
+                      {showDeepgramApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Used by the call handler to transcribe caller speech via Deepgram Nova-2 Phonecall model.
+                  </p>
+                </div>
+              </div>
+            </fieldset>
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTestStt}
+                disabled={testingStt || !deepgramApiKey}
+              >
+                {testingStt ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Testing…</>
+                ) : (
+                  <><CheckCircle className="mr-2 h-4 w-4" /> Test Connection</>
+                )}
+              </Button>
+              {sttEditing && (
+                <Button
+                  size="sm"
+                  onClick={() => saveSttMutation.mutate()}
+                  disabled={saveSttMutation.isPending}
+                >
+                  {saveSttMutation.isPending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                  ) : (
+                    <><Save className="mr-2 h-4 w-4" /> Save STT Settings</>
+                  )}
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Platform Logo */}
         <Card className="lg:col-span-2">
           <CardHeader>
