@@ -401,13 +401,15 @@ Deno.serve(async (req) => {
 
     console.log(`[Event] Organization: ${organizationId}, callId: ${callId}`);
 
-    const [orgResult, agentResult] = await Promise.all([
+    const [orgResult, agentResult, knowledgeResult] = await Promise.all([
       supabase.from("organizations").select("*").eq("id", organizationId).single(),
       supabase.from("ai_agents").select("*").eq("organization_id", organizationId).eq("is_active", true).limit(1).maybeSingle(),
+      supabase.from("knowledge_items").select("*").eq("organization_id", organizationId).eq("is_active", true).order("sort_order", { ascending: true }),
     ]);
 
     const org = (orgResult.data || {}) as Record<string, unknown>;
     const agent = (agentResult.data || {}) as Record<string, unknown>;
+    const knowledgeItems = (knowledgeResult.data || []) as Array<Record<string, unknown>>;
 
     console.log(`[Event] Agent: name=${agent.name}, greeting=${agent.greeting}, org=${org.name}`);
 
