@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { useKnowledgeItems, useCreateKnowledgeItem, useUpdateKnowledgeItem, useDeleteKnowledgeItem } from "@/hooks/use-knowledge-items";
 import KnowledgeItemDialog, { type KnowledgeField } from "@/components/KnowledgeItemDialog";
+import UpdateAgentBar from "@/components/UpdateAgentBar";
 import { toast } from "sonner";
 
 const fields: KnowledgeField[] = [
@@ -86,6 +87,8 @@ export default function FAQs() {
         onSubmit={handleSubmit}
         loading={create.isPending || update.isPending}
       />
+
+      <UpdateAgentBar type="faq" />
     </div>
   );
 }
