@@ -184,12 +184,37 @@ function isWithinBusinessHours(bh: Record<string, unknown>): boolean {
     const local = new Date(utcMs + offsetMin * 60000);
     const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
     const dayName = dayNames[local.getDay()];
-    const schedule = (bh.weekly_schedule as Record<string, Record<string, unknown>>)?.[dayName];
-    if (!schedule || !schedule.open) return false;
+    const ws = bh.weekly_schedule as Record<string, Record<string, unknown>> | undefined;
+    const schedule = ws?.[dayName];
+    if (!schedule || !schedule.open) {
+      // Check if previous day has overnight hours that extend into today
+      const prevDayIndex = (local.getDay() + 6) % 7;
+      const prevDayName = dayNames[prevDayIndex];
+      const prevSchedule = ws?.[prevDayName];
+      if (prevSchedule?.open && prevSchedule?.overnight) {
+        const currentMinutes = local.getHours() * 60 + local.getMinutes();
+        const [th, tm] = ((prevSchedule.to as string) || "00:00").split(":").map(Number);
+        const toMin = th * 60 + tm;
+        if (currentMinutes < toMin) return true;
+      }
+      return false;
+    }
+
+    // 24h check
+    if (schedule.is24h) return true;
+
     const currentMinutes = local.getHours() * 60 + local.getMinutes();
     const [fh, fm] = ((schedule.from as string) || "09:00").split(":").map(Number);
     const [th, tm] = ((schedule.to as string) || "17:00").split(":").map(Number);
-    return currentMinutes >= fh * 60 + fm && currentMinutes < th * 60 + tm;
+    const fromMin = fh * 60 + fm;
+    const toMin = th * 60 + tm;
+
+    if (schedule.overnight) {
+      // Overnight: open from "from" until midnight (today's portion)
+      return currentMinutes >= fromMin;
+    }
+
+    return currentMinutes >= fromMin && currentMinutes < toMin;
   } catch {
     return true;
   }
@@ -204,22 +229,32 @@ function generateBusinessHoursSummary(bh: Record<string, unknown>): string {
       monday: "Monday", tuesday: "Tuesday", wednesday: "Wednesday",
       thursday: "Thursday", friday: "Friday", saturday: "Saturday", sunday: "Sunday",
     };
-    const groups: { days: string[]; from: string; to: string }[] = [];
+
+    const formatHours = (s: Record<string, unknown>): string => {
+      if (s.is24h) return "24 hours";
+      const from = s.from as string;
+      const to = s.to as string;
+      if (s.overnight) return `${from}–${to} (next day)`;
+      return `${from}–${to}`;
+    };
+
+    const groups: { days: string[]; text: string }[] = [];
     const closed: string[] = [];
     for (const d of days) {
       const s = ws[d];
       if (!s || !s.open) { closed.push(dayLabels[d]); continue; }
+      const text = formatHours(s);
       const last = groups[groups.length - 1];
-      if (last && last.from === s.from && last.to === s.to) {
+      if (last && last.text === text) {
         last.days.push(dayLabels[d]);
       } else {
-        groups.push({ days: [dayLabels[d]], from: s.from as string, to: s.to as string });
+        groups.push({ days: [dayLabels[d]], text });
       }
     }
     const parts: string[] = [];
     for (const g of groups) {
       const range = g.days.length > 2 ? `${g.days[0]} to ${g.days[g.days.length - 1]}` : g.days.join(" and ");
-      parts.push(`Open ${range} ${g.from}–${g.to} (${bh.timezone || "UTC+0"}).`);
+      parts.push(`Open ${range} ${g.text} (${bh.timezone || "UTC+0"}).`);
     }
     if (closed.length > 0) parts.push(`Closed ${closed.join(" and ")}.`);
     const ph = bh.public_holidays as Record<string, unknown> | undefined;
