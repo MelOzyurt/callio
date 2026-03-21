@@ -492,17 +492,16 @@ Deno.serve(async (req) => {
             to: agent.transfer_number,
           });
         } else if (phase === "greeting" || phase === "responding") {
-          // Step 2: After speak ends, start plain gather for speech capture
-          console.log(`[gather-start] Starting plain gather for phase=${phase}`);
-          await providerAction(call_control_id, "gather", apiKey, {
-            gather_method: "speech",
-            input: ["speech"],
-            language: "en-US",
-            speech_model: "default",
-            speech_timeout: "auto",
-            timeout: 25,
-            minimum_silence_duration: 500,
-            client_state: makeState(phase, { gatherActive: true }),
+          // Step 2: After speak ends, start recording for Deepgram STT
+          console.log(`[record-start] Starting record for phase=${phase}`);
+          await providerAction(call_control_id, "record_start", apiKey, {
+            format: "wav",
+            channels: "single",
+            play_beep: false,
+            timeout_secs: 25,
+            trim_silence: false,
+            minimum_silence_duration: 1500,
+            client_state: makeState(phase, { recordingActive: true }),
           });
         } else {
           console.log(`[call.speak.ended] Ignoring for phase=${phase}`);
