@@ -555,7 +555,7 @@ Deno.serve(async (req) => {
           content: transcript,
         });
 
-        const systemPrompt = buildSystemPrompt(agent, org);
+        const systemPrompt = buildSystemPrompt(agent, org, knowledgeItems);
         const aiResponse = await getAIResponse(messagesAfterUser, systemPrompt, llmConfig);
 
         console.log(`[speak] AI response: "${aiResponse}"`);
