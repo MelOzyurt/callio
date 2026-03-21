@@ -31,14 +31,7 @@ const DEFAULT_BUSINESS_HOURS: BusinessHoursData = {
   custom_openings: [],
 };
 
-const DEFAULT_ENABLED_ACTIONS = {
-  appointment_booking: true,
-  callback_requests: true,
-  lead_capture: true,
-  order_intake: false,
-  faq_answering: true,
-  message_taking: true,
-};
+// Removed old DEFAULT_ENABLED_ACTIONS — now using ObjectivesData
 
 const DEFAULT_ESCALATION_RULES = {
   negative_sentiment: true,
