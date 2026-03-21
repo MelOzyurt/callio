@@ -252,27 +252,45 @@ function buildSystemPrompt(
     parts.push(`Special instructions: ${agent.special_instructions}`);
   }
 
-  // Knowledge Base: Services, Products, FAQs
-  const services = knowledgeItems.filter(i => i.type === "service");
-  const products = knowledgeItems.filter(i => i.type === "product");
-  const faqs = knowledgeItems.filter(i => i.type === "faq");
+  // Build parent→children map
+  const childrenMap = new Map<string, Array<Record<string, unknown>>>();
+  for (const item of knowledgeItems) {
+    const pid = item.parent_id as string | null;
+    if (pid) {
+      if (!childrenMap.has(pid)) childrenMap.set(pid, []);
+      childrenMap.get(pid)!.push(item);
+    }
+  }
+
+  // Knowledge Base: Services, Products, FAQs (root items only)
+  const services = knowledgeItems.filter(i => i.type === "service" && !i.parent_id);
+  const products = knowledgeItems.filter(i => i.type === "product" && !i.parent_id);
+  const faqs = knowledgeItems.filter(i => i.type === "faq" && !i.parent_id);
 
   console.log(`[AI] Knowledge items: ${knowledgeItems.length}, services: ${services.length}, products: ${products.length}, faqs: ${faqs.length}`);
 
+  const formatItemWithChildren = (item: Record<string, unknown>): string => {
+    const meta = item.metadata as Record<string, unknown> | undefined;
+    let line = `- ${item.name}${item.description ? ': ' + item.description : ''}`;
+    if (meta?.price) line += ` (Price: ${meta.price})`;
+    if (meta?.duration) line += ` (Duration: ${meta.duration})`;
+    const children = childrenMap.get(item.id as string);
+    if (children && children.length > 0) {
+      line += "\n  Options/Variants:";
+      for (const child of children) {
+        const cm = child.metadata as Record<string, unknown> | undefined;
+        line += `\n    • ${child.name}${cm?.price ? ' - ' + cm.price : ''}`;
+      }
+    }
+    return line;
+  };
+
   if (services.length > 0) {
-    parts.push("Our services:\n" + services.map(s =>
-      `- ${s.name}${s.description ? ': ' + s.description : ''}${
-        (s.metadata as Record<string, unknown>)?.price ? ' (Price: ' + (s.metadata as Record<string, unknown>).price + ')' : ''
-      }${(s.metadata as Record<string, unknown>)?.duration ? ' (Duration: ' + (s.metadata as Record<string, unknown>).duration + ')' : ''}`
-    ).join("\n"));
+    parts.push("Our services:\n" + services.map(formatItemWithChildren).join("\n"));
   }
 
   if (products.length > 0) {
-    parts.push("Our products:\n" + products.map(p =>
-      `- ${p.name}${p.description ? ': ' + p.description : ''}${
-        (p.metadata as Record<string, unknown>)?.price ? ' (Price: ' + (p.metadata as Record<string, unknown>).price + ')' : ''
-      }`
-    ).join("\n"));
+    parts.push("Our products:\n" + products.map(formatItemWithChildren).join("\n"));
   }
 
   if (faqs.length > 0) {
