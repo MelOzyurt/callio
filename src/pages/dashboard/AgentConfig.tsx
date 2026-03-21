@@ -138,7 +138,7 @@ export default function AgentConfig() {
       setBusinessHours(agent.business_hours as unknown as BusinessHoursData);
     }
     if (agent.enabled_actions && typeof agent.enabled_actions === "object") {
-      setEnabledActions({ ...DEFAULT_ENABLED_ACTIONS, ...(agent.enabled_actions as any) });
+      setEnabledActions({ ...DEFAULT_OBJECTIVES, ...(agent.enabled_actions as any) });
     }
     if (agent.escalation_rules && typeof agent.escalation_rules === "object") {
       setEscalationRules({ ...DEFAULT_ESCALATION_RULES, ...(agent.escalation_rules as any) });
