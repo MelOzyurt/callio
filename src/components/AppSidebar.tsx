@@ -2,29 +2,30 @@ import {
   Phone, LayoutDashboard, Bot, PhoneCall, FileText,
   Briefcase, ShoppingCart, HelpCircle, CreditCard,
   LifeBuoy, Settings, ChevronLeft, PhoneForwarded,
-  ClipboardList, LogOut
+  ClipboardList, LogOut, ChevronDown
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { useOrganization, useCurrentUser } from "@/hooks/use-organization";
 import { supabase } from "@/integrations/supabase/client";
 
 const mainNav = [
   { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Agent", url: "/dashboard/agent", icon: Bot },
   { title: "Phone Setup", url: "/dashboard/phone", icon: PhoneForwarded },
   { title: "Calls", url: "/dashboard/calls", icon: PhoneCall },
   { title: "Transcripts", url: "/dashboard/transcripts", icon: FileText },
   { title: "Actions", url: "/dashboard/actions", icon: ClipboardList },
 ];
 
-const configNav = [
+const agentSubNav = [
+  { title: "Configuration", url: "/dashboard/agent", icon: Bot },
   { title: "Services", url: "/dashboard/services", icon: Briefcase },
   { title: "Products", url: "/dashboard/products", icon: ShoppingCart },
   { title: "FAQs", url: "/dashboard/faqs", icon: HelpCircle },
