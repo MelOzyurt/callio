@@ -26,6 +26,7 @@ export default function Services() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
 
   const openAdd = () => { setEditing(null); setDialogOpen(true); };
