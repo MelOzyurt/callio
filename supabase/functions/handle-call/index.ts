@@ -485,10 +485,24 @@ Deno.serve(async (req) => {
       case "call.speak_and_gather.ended":
       case "call.gather_using_speak.ended":
       case "call.gather_stopped": {
-        const transcript = payload.speech_transcript as string;
-        const gatherStatus = (payload as Record<string, unknown>).status as string;
+        const p = payload as Record<string, unknown>;
+        console.log(`[gather] Full payload:`, JSON.stringify(p));
 
-        console.log(`[gather] Transcript: "${transcript || "(empty)"}", status: ${gatherStatus}`);
+        // Resolve transcript from multiple possible fields
+        const transcript = (
+          (p.speech_transcript as string) ||
+          (p.transcript as string) ||
+          (p.text as string) ||
+          ((p.results as Record<string, unknown>)?.text as string) ||
+          ((p.metadata as Record<string, unknown>)?.transcript as string) ||
+          ""
+        ).trim();
+
+        const gatherStatus = p.status as string;
+
+        console.log(`[gather] Transcript resolved: "${transcript || "(empty)"}"`);
+        console.log(`[gather] Gather status: ${gatherStatus}`);
+        console.log(`[gather] client_state: ${p.client_state}`);
 
         // If gather ended because call hung up, don't try to respond
         if (gatherStatus === "call_hangup") {
@@ -496,8 +510,8 @@ Deno.serve(async (req) => {
           break;
         }
 
-        if (!transcript || transcript.trim() === "") {
-          console.log(`[gather] No speech, asking to repeat`);
+        if (!transcript) {
+          console.log(`[gather] No speech from any field, asking to repeat`);
           await providerAction(call_control_id, "gather_using_speak", apiKey, {
             payload:
               (agent.fallback_message as string) ||
