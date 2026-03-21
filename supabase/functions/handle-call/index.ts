@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const VOICE = "Telnyx.Ultra.a7a59115-2425-4192-844c-1e98ec7d6877";
+const VOICE = "Polly.Amy";
 
 interface CallPayload {
   call_control_id: string;
