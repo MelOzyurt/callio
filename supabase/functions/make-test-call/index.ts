@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     // Get phone setup
     const { data: phoneSetup } = await supabase
       .from("phone_setups")
-      .select("virtual_number, provider_config")
+      .select("virtual_number, business_number, provider_config")
       .eq("organization_id", organization_id)
       .limit(1)
       .maybeSingle();
@@ -72,10 +72,25 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Get the business number to call
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("primary_business_number")
+      .eq("id", organization_id)
+      .single();
+
+    const targetNumber = phoneSetup.business_number || org?.primary_business_number;
+    if (!targetNumber) {
+      return new Response(
+        JSON.stringify({ error: "No business number configured. Please set your business number in Settings first." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Get platform settings for provider API key and connection
     const { data: settings } = await supabase
       .from("platform_settings")
-      .select("provider_api_key, provider_connection_id")
+      .select("provider_api_key, provider_connection_id, webhook_base_url")
       .limit(1)
       .single();
 
@@ -90,12 +105,14 @@ Deno.serve(async (req) => {
     const connectionId = (phoneSetup.provider_config as Record<string, unknown>)?.connection_id || 
                           settings?.provider_connection_id;
 
-    // Initiate outbound call via Telnyx: call FROM virtual number TO virtual number (test)
+    const webhookBase = settings?.webhook_base_url || `${Deno.env.get("SUPABASE_URL")}/functions/v1`;
+
+    // Initiate outbound call: FROM virtual number TO business number
     const callBody: Record<string, unknown> = {
       connection_id: connectionId,
-      to: phoneSetup.virtual_number,
+      to: targetNumber,
       from: phoneSetup.virtual_number,
-      webhook_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/handle-call?org=${organization_id}`,
+      webhook_url: `${webhookBase}/handle-call`,
     };
 
     const res = await fetch("https://api.telnyx.com/v2/calls", {
