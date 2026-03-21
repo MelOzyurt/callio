@@ -238,7 +238,53 @@ export default function AdminSettings() {
     }
   };
 
-  const handleTestLlm = async () => {
+  const saveSttMutation = useMutation({
+    mutationFn: async () => {
+      const payload = {
+        deepgram_api_key: deepgramApiKey || null,
+      } as Record<string, unknown>;
+
+      if (settings?.id) {
+        const { error } = await supabase
+          .from("platform_settings")
+          .update(payload as never)
+          .eq("id", settings.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("platform_settings")
+          .insert(payload as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platform-settings"] });
+      toast.success("STT settings saved.");
+      setSttEditing(false);
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const handleTestStt = async () => {
+    setTestingStt(true);
+    try {
+      const res = await fetch("https://api.deepgram.com/v1/projects", {
+        headers: { Authorization: `Token ${deepgramApiKey}` },
+      });
+      if (res.ok) {
+        toast.success("Deepgram connection verified successfully.");
+      } else {
+        const body = await res.json().catch(() => ({}));
+        toast.error((body as Record<string, string>)?.err_msg || `Deepgram returned ${res.status}`);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Deepgram test failed.";
+      toast.error(message);
+    } finally {
+      setTestingStt(false);
+    }
+  };
+
     setTestingLlm(true);
     try {
       const { data, error } = await supabase.functions.invoke("test-llm-connection");
