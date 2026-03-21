@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, ChevronDown, Copy, Plus, Trash2, X } from "lucide-react";
+import { CalendarIcon, ChevronDown, Copy, Plus, Trash2, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -18,6 +18,8 @@ interface DaySchedule {
   open: boolean;
   from: string;
   to: string;
+  is24h?: boolean;
+  overnight?: boolean; // true when "to" is next day (e.g. 17:00→02:00)
 }
 
 interface WeeklySchedule {
@@ -140,12 +142,17 @@ function formatTime12(t: string): string {
   return `${h12}:${String(m).padStart(2, "0")}${ampm}`;
 }
 
+function formatDayHours(s: DaySchedule): string {
+  if (s.is24h) return "24 hours";
+  if (s.overnight) return `${formatTime12(s.from)}–${formatTime12(s.to)} (next day)`;
+  return `${formatTime12(s.from)}–${formatTime12(s.to)}`;
+}
+
 export function generateBusinessHoursSummary(data: BusinessHoursData): string {
   const parts: string[] = [];
   const { weekly_schedule, timezone, public_holidays, custom_closures, custom_openings } = data;
 
-  // Group days by schedule
-  const groups: { days: string[]; from: string; to: string }[] = [];
+  const groups: { days: string[]; text: string }[] = [];
   let closedDays: string[] = [];
 
   for (const day of DAYS) {
@@ -154,11 +161,12 @@ export function generateBusinessHoursSummary(data: BusinessHoursData): string {
       closedDays.push(DAY_LABELS[day]);
       continue;
     }
+    const text = formatDayHours(s);
     const last = groups[groups.length - 1];
-    if (last && last.from === s.from && last.to === s.to) {
+    if (last && last.text === text) {
       last.days.push(DAY_LABELS[day]);
     } else {
-      groups.push({ days: [DAY_LABELS[day]], from: s.from, to: s.to });
+      groups.push({ days: [DAY_LABELS[day]], text });
     }
   }
 
@@ -166,7 +174,7 @@ export function generateBusinessHoursSummary(data: BusinessHoursData): string {
     const dayRange = g.days.length > 2
       ? `${g.days[0]} to ${g.days[g.days.length - 1]}`
       : g.days.join(" and ");
-    parts.push(`Open ${dayRange} ${formatTime12(g.from)}–${formatTime12(g.to)} (${timezone}).`);
+    parts.push(`Open ${dayRange} ${g.text} (${timezone}).`);
   }
 
   if (closedDays.length > 0) {
@@ -244,11 +252,40 @@ export default function BusinessHours({ value, onChange }: BusinessHoursProps) {
   }, [offsetMinutes]);
 
   const updateSchedule = useCallback((day: keyof WeeklySchedule, patch: Partial<DaySchedule>) => {
+    const current = value.weekly_schedule[day];
+    const updated = { ...current, ...patch };
+
+    // Auto-detect overnight: if "to" < "from" and not 24h, mark as overnight
+    if (!updated.is24h && updated.open) {
+      const [fh, fm] = updated.from.split(":").map(Number);
+      const [th, tm] = updated.to.split(":").map(Number);
+      const fromMin = fh * 60 + fm;
+      const toMin = th * 60 + tm;
+      updated.overnight = toMin <= fromMin && toMin > 0;
+    }
+
     onChange({
       ...value,
       weekly_schedule: {
         ...value.weekly_schedule,
-        [day]: { ...value.weekly_schedule[day], ...patch },
+        [day]: updated,
+      },
+    });
+  }, [value, onChange]);
+
+  const toggle24h = useCallback((day: keyof WeeklySchedule, is24h: boolean) => {
+    onChange({
+      ...value,
+      weekly_schedule: {
+        ...value.weekly_schedule,
+        [day]: {
+          ...value.weekly_schedule[day],
+          open: true,
+          is24h,
+          overnight: false,
+          from: is24h ? "00:00" : "09:00",
+          to: is24h ? "23:59" : "17:00",
+        },
       },
     });
   }, [value, onChange]);
@@ -326,23 +363,58 @@ export default function BusinessHours({ value, onChange }: BusinessHoursProps) {
             return (
               <div
                 key={day}
-                className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-lg border p-3"
+                className="flex flex-col gap-2 rounded-lg border p-3"
               >
-                <span className="w-24 text-sm font-medium text-foreground shrink-0">
-                  {DAY_LABELS[day]}
-                </span>
-                <Switch
-                  checked={s.open}
-                  onCheckedChange={open => updateSchedule(day, { open })}
-                />
-                {s.open ? (
-                  <div className="flex items-center gap-2">
-                    <TimeSelect value={s.from} onChange={from => updateSchedule(day, { from })} />
-                    <span className="text-xs text-muted-foreground">to</span>
-                    <TimeSelect value={s.to} onChange={to => updateSchedule(day, { to })} />
+                <div className="flex items-center gap-3">
+                  <span className="w-24 text-sm font-medium text-foreground shrink-0">
+                    {DAY_LABELS[day]}
+                  </span>
+                  <Switch
+                    checked={s.open}
+                    onCheckedChange={open => updateSchedule(day, { open, is24h: false })}
+                  />
+                  {s.open ? (
+                    <>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => toggle24h(day, !s.is24h)}
+                          className={cn(
+                            "flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors",
+                            s.is24h
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-muted-foreground/30 text-muted-foreground hover:border-primary/50 hover:text-primary"
+                          )}
+                        >
+                          <Clock className="h-3 w-3" />
+                          24h
+                        </button>
+                      </div>
+                      {!s.is24h && (
+                        <div className="flex items-center gap-2">
+                          <TimeSelect value={s.from} onChange={from => updateSchedule(day, { from })} />
+                          <span className="text-xs text-muted-foreground">to</span>
+                          <TimeSelect value={s.to} onChange={to => updateSchedule(day, { to })} />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Badge variant="secondary" className="w-fit">Closed</Badge>
+                  )}
+                </div>
+                {/* Overnight indicator */}
+                {s.open && !s.is24h && s.overnight && (
+                  <div className="ml-[calc(6rem+2.25rem)] flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-xs gap-1 border-amber-500/50 text-amber-600">
+                      <Clock className="h-3 w-3" /> Overnight — closes {s.to} next day
+                    </Badge>
                   </div>
-                ) : (
-                  <Badge variant="secondary" className="w-fit">Closed</Badge>
+                )}
+                {s.open && s.is24h && (
+                  <div className="ml-[calc(6rem+2.25rem)]">
+                    <Badge variant="outline" className="text-xs gap-1 border-primary/50 text-primary">
+                      <Clock className="h-3 w-3" /> Open 24 hours
+                    </Badge>
+                  </div>
                 )}
               </div>
             );
