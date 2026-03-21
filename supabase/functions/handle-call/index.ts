@@ -326,7 +326,6 @@ Deno.serve(async (req) => {
     let organizationId = state.orgId || orgIdParam || "";
     let callId = state.callId || "";
 
-    // If no orgId from state, look up by phone number
     if (!organizationId && to) {
       const { data: phoneSetup } = await supabase
         .from("phone_setups")
@@ -342,7 +341,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // For events without to/from and no state, try to find by provider_call_id
     if (!organizationId) {
       const lookupId = call_leg_id || call_control_id;
       if (lookupId) {
@@ -369,7 +367,6 @@ Deno.serve(async (req) => {
 
     console.log(`[Event] Organization: ${organizationId}, callId: ${callId}`);
 
-    // Fetch org and agent data
     const [orgResult, agentResult] = await Promise.all([
       supabase.from("organizations").select("*").eq("id", organizationId).single(),
       supabase.from("ai_agents").select("*").eq("organization_id", organizationId).eq("is_active", true).limit(1).maybeSingle(),
@@ -384,7 +381,6 @@ Deno.serve(async (req) => {
     const apiKey = platformConfig.providerApiKey;
     const llmConfig = platformConfig.llm;
 
-    // Helper to create client_state with orgId & callId persisted
     const makeState = (phase: string, extra: Record<string, unknown> = {}): string =>
       encodeState(phase, { orgId: organizationId, callId, ...extra });
 
@@ -409,7 +405,7 @@ Deno.serve(async (req) => {
       }
 
       case "call.answered": {
-        // If we don't have callId yet, look it up
+        // Look up callId if missing
         if (!callId) {
           const { data: cr } = await supabase
             .from("calls")
@@ -435,48 +431,42 @@ Deno.serve(async (req) => {
           greeting = "Hello, thank you for calling. How can I help you today?";
         }
 
-        console.log(`[call.answered] Greeting: "${greeting}", callId: ${callId}`);
+        console.log(`[call.answered] Speaking greeting: "${greeting}", callId: ${callId}`);
 
-        await providerAction(call_control_id, "gather_using_speak", apiKey, {
+        // Step 1: Plain speak for greeting (NO gather_using_speak)
+        await providerAction(call_control_id, "speak", apiKey, {
           payload: greeting,
           voice: VOICE,
-          language: "en-US",
-          gather_method: "speech",
-          speech_model: "enhanced",
-          speech_timeout: "auto",
-          timeout: 30,
-          minimum_silence_duration: 800,
-          client_state: makeState("greeting", { gatherActive: true }),
+          language: "en-GB",
+          client_state: makeState("greeting"),
         });
         break;
       }
 
       case "call.speak.ended": {
         const phase = state.phase || "unknown";
-        const gatherActive = state.gatherActive || false;
-        console.log(`[call.speak.ended] Phase: ${phase}, gatherActive: ${gatherActive}, orgId: ${organizationId}, callId: ${callId}`);
+        console.log(`[call.speak.ended] Phase: ${phase}, orgId: ${organizationId}, callId: ${callId}`);
 
-        if (gatherActive) {
-          // This speak.ended came from gather_using_speak — gather is already running, ignore
-          console.log(`[call.speak.ended] gather_using_speak active, ignoring speak.ended`);
-        } else if (phase === "transferring" && agent.transfer_number) {
+        if (phase === "transferring" && agent.transfer_number) {
           console.log(`[call.speak.ended] Transferring to ${agent.transfer_number}`);
           await providerAction(call_control_id, "transfer", apiKey, {
             to: agent.transfer_number,
           });
         } else if (phase === "greeting" || phase === "responding") {
-          console.log(`[call.speak.ended] Fallback: starting regular gather for phase=${phase}`);
+          // Step 2: After speak ends, start plain gather for speech capture
+          console.log(`[gather-start] Starting plain gather for phase=${phase}`);
           await providerAction(call_control_id, "gather", apiKey, {
             gather_method: "speech",
+            input: ["speech"],
+            language: "en-GB",
             speech_model: "enhanced",
-            language: "en-US",
             speech_timeout: "auto",
-            timeout: 25,
+            timeout: 20,
             minimum_silence_duration: 800,
-            client_state: makeState(phase),
+            client_state: makeState(phase, { gatherActive: true }),
           });
         } else {
-          console.log(`[call.speak.ended] Unexpected speak.ended phase=${phase}, ignoring`);
+          console.log(`[call.speak.ended] Ignoring for phase=${phase}`);
         }
         break;
       }
@@ -486,7 +476,7 @@ Deno.serve(async (req) => {
       case "call.gather_using_speak.ended":
       case "call.gather_stopped": {
         const p = payload as Record<string, unknown>;
-        console.log(`[gather] Full payload:`, JSON.stringify(p));
+        console.log(`[gather-ended] Full payload:`, JSON.stringify(p));
 
         // Resolve transcript from multiple possible fields
         const transcript = (
@@ -500,30 +490,25 @@ Deno.serve(async (req) => {
 
         const gatherStatus = p.status as string;
 
-        console.log(`[gather] Transcript resolved: "${transcript || "(empty)"}"`);
-        console.log(`[gather] Gather status: ${gatherStatus}`);
-        console.log(`[gather] client_state: ${p.client_state}`);
+        console.log(`[transcript] Resolved: "${transcript || "(empty)"}"`);
+        console.log(`[gather-ended] Status: ${gatherStatus}`);
 
         // If gather ended because call hung up, don't try to respond
         if (gatherStatus === "call_hangup") {
-          console.log(`[gather] Call already hung up, skipping response`);
+          console.log(`[gather-ended] Call already hung up, skipping response`);
           break;
         }
 
         if (!transcript) {
-          console.log(`[gather] No speech from any field, asking to repeat`);
-          await providerAction(call_control_id, "gather_using_speak", apiKey, {
+          console.log(`[gather-ended] No speech detected, asking to repeat`);
+          // Speak fallback, then gather will restart on speak.ended
+          await providerAction(call_control_id, "speak", apiKey, {
             payload:
               (agent.fallback_message as string) ||
               "I didn't catch that. Could you please repeat?",
             voice: VOICE,
-            language: "en-US",
-            gather_method: "speech",
-            speech_model: "enhanced",
-            speech_timeout: "auto",
-            timeout: 30,
-            minimum_silence_duration: 800,
-            client_state: makeState("responding", { gatherActive: true }),
+            language: "en-GB",
+            client_state: makeState("responding"),
           });
           break;
         }
@@ -537,7 +522,7 @@ Deno.serve(async (req) => {
         const systemPrompt = buildSystemPrompt(agent, org);
         const aiResponse = await getAIResponse(messagesAfterUser, systemPrompt, llmConfig);
 
-        console.log(`[gather] AI response: "${aiResponse}"`);
+        console.log(`[speak] AI response: "${aiResponse}"`);
 
         // Persist AI response
         await appendConversationMessage(supabase, callId, {
@@ -554,23 +539,20 @@ Deno.serve(async (req) => {
             lower.includes("i'll transfer"));
 
         if (shouldTransfer && agent.transfer_number) {
+          // Speak transfer message, then transfer on speak.ended
           await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
             voice: VOICE,
-            language: "en-US",
+            language: "en-GB",
             client_state: makeState("transferring"),
           });
         } else {
-          await providerAction(call_control_id, "gather_using_speak", apiKey, {
+          // Speak AI response, then gather will restart on speak.ended
+          await providerAction(call_control_id, "speak", apiKey, {
             payload: aiResponse,
             voice: VOICE,
-            language: "en-US",
-            gather_method: "speech",
-            speech_model: "enhanced",
-            speech_timeout: "auto",
-            timeout: 30,
-            minimum_silence_duration: 800,
-            client_state: makeState("responding", { gatherActive: true }),
+            language: "en-GB",
+            client_state: makeState("responding"),
           });
         }
         break;
@@ -618,6 +600,11 @@ Deno.serve(async (req) => {
             });
           }
         }
+        break;
+      }
+
+      case "call.speak.started": {
+        console.log(`[call.speak.started] TTS started`);
         break;
       }
 
