@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { useBookings, useCreateBooking, useUpdateBooking } from "@/hooks/use-bookings";
+import { useBookings, useCreateBooking, useCancelBooking } from "@/hooks/use-bookings";
 import { useCustomers } from "@/hooks/use-customers";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Plus, Search, X, CheckCircle, Clock, Ban } from "lucide-react";
+import { Calendar, Plus, Search, CheckCircle, Clock, Ban, XCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
@@ -32,12 +32,15 @@ export default function Bookings() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [cancelDialogId, setCancelDialogId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   const { data: bookings = [], isLoading } = useBookings(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
   const { data: customers = [] } = useCustomers();
   const createBooking = useCreateBooking();
+  const cancelBooking = useCancelBooking();
 
   const [form, setForm] = useState({
     customer_id: "",
@@ -62,12 +65,20 @@ export default function Bookings() {
     createBooking.mutate(
       {
         customer_id: form.customer_id || null,
-        start_at: form.start_at,
-        end_at: form.end_at,
+        start_at: new Date(form.start_at).toISOString(),
+        end_at: new Date(form.end_at).toISOString(),
         notes: form.notes || undefined,
         source: form.source,
       },
       { onSuccess: () => { setDialogOpen(false); setForm({ customer_id: "", start_at: "", end_at: "", notes: "", source: "manual" }); } }
+    );
+  };
+
+  const handleCancel = () => {
+    if (!cancelDialogId) return;
+    cancelBooking.mutate(
+      { booking_id: cancelDialogId, reason: cancelReason || undefined },
+      { onSuccess: () => { setCancelDialogId(null); setCancelReason(""); } }
     );
   };
 
@@ -118,6 +129,26 @@ export default function Bookings() {
         </Dialog>
       </div>
 
+      {/* Cancel Dialog */}
+      <Dialog open={!!cancelDialogId} onOpenChange={(open) => { if (!open) { setCancelDialogId(null); setCancelReason(""); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Cancel Booking</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">Are you sure you want to cancel this booking? Cancellations must be made at least 60 minutes before the appointment.</p>
+            <div>
+              <Label>Reason (optional)</Label>
+              <Textarea className="mt-1.5" value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} placeholder="Cancellation reason..." rows={2} />
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setCancelDialogId(null)}>Keep Booking</Button>
+              <Button variant="destructive" className="flex-1" onClick={handleCancel} disabled={cancelBooking.isPending}>
+                {cancelBooking.isPending ? "Cancelling..." : "Cancel Booking"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-xs">
@@ -148,14 +179,15 @@ export default function Bookings() {
               <TableHead>Duration</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Source</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Loading...</TableCell></TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <Calendar className="mx-auto h-10 w-10 text-muted-foreground/30 mb-3" />
                   <p className="text-sm text-muted-foreground">No bookings found</p>
                 </TableCell>
@@ -165,6 +197,7 @@ export default function Bookings() {
                 const start = new Date(b.start_at);
                 const end = new Date(b.end_at);
                 const durationMin = Math.round((end.getTime() - start.getTime()) / 60000);
+                const canCancel = ["confirmed", "pending"].includes(b.status);
                 return (
                   <TableRow key={b.id}>
                     <TableCell className="font-medium">{b.customer?.full_name ?? "Walk-in"}</TableCell>
@@ -180,6 +213,13 @@ export default function Bookings() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground capitalize">{b.source.replace("_", " ")}</TableCell>
+                    <TableCell>
+                      {canCancel && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setCancelDialogId(b.id)}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })
