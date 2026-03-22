@@ -974,6 +974,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_booking_with_capacity_check: {
+        Args: {
+          p_customer_id: string
+          p_end_at: string
+          p_metadata?: Json
+          p_notes?: string
+          p_organization_id: string
+          p_service_id: string
+          p_source?: string
+          p_start_at: string
+        }
+        Returns: Json
+      }
       get_user_org_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
