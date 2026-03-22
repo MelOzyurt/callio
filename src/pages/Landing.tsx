@@ -81,9 +81,6 @@ export default function Landing() {
             <Button variant="hero" size="xl" asChild>
               <Link to="/signup">Start Free Trial <ArrowRight className="ml-1 h-5 w-5" /></Link>
             </Button>
-            <Button variant="hero-outline" size="xl" asChild>
-              <Link to="/signup">Book a Demo</Link>
-            </Button>
           </motion.div>
         </div>
 
