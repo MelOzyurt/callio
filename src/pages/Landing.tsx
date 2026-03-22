@@ -2,10 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
   Phone, Bot, BarChart3, Clock, Users, ArrowRight,
-  CheckCircle, Zap, Shield, Headphones, Star,
+  Zap, Shield, Headphones,
   Utensils, Wrench, Stethoscope, Scissors, ShoppingBag, Building2
 } from "lucide-react";
 import { motion } from "framer-motion";
+import ProductTiers from "@/components/landing/ProductTiers";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
