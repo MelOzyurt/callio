@@ -614,7 +614,7 @@ Deno.serve(async (req) => {
         }
 
         const dgRes = await fetch(
-          "https://api.deepgram.com/v1/listen?model=nova-2-phonecall&smart_format=true&language=en",
+          "https://api.deepgram.com/v1/listen?model=nova-3&smart_format=false&language=en",
           {
             method: "POST",
             headers: {
