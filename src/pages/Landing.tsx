@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import {
-  Phone, Bot, BarChart3, Clock, Users, ArrowRight,
+  Bot, BarChart3, Clock, Users, ArrowRight,
   Zap, Shield, Headphones,
-  Utensils, Wrench, Stethoscope, Scissors, ShoppingBag, Building2
+  Utensils, Wrench, Stethoscope, Scissors, ShoppingBag, Building2, Phone
 } from "lucide-react";
 import { motion } from "framer-motion";
+import voigroLogo from "@/assets/voigro-logo.png";
 import ProductTiers from "@/components/landing/ProductTiers";
 
 const fadeUp = {
