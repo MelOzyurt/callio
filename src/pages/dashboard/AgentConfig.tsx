@@ -359,6 +359,20 @@ export default function AgentConfig() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Voice Delivery Style</Label>
+                <Textarea
+                  value={voiceDeliveryInstructions}
+                  onChange={e => setVoiceDeliveryInstructions(e.target.value)}
+                  className="mt-1.5"
+                  rows={4}
+                  disabled={!isEditing("behavior")}
+                  placeholder="Describe how the AI should deliver its responses..."
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Instructions for how the AI should speak — tone, rhythm, pauses, and overall delivery feel.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
