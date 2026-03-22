@@ -79,7 +79,16 @@ export default function Signup() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" autoComplete="new-password" placeholder="Use a unique password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1.5" />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <div className="flex items-start gap-2">
+            <Checkbox id="terms" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" />
+            <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
+              I agree to the{" "}
+              <Link to="/terms" className="font-medium text-primary hover:underline" target="_blank">Terms of Service</Link>
+              {" "}and{" "}
+              <Link to="/privacy" className="font-medium text-primary hover:underline" target="_blank">Privacy Policy</Link>
+            </Label>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading || !agreed}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Account
           </Button>

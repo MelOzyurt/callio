@@ -117,6 +117,21 @@ export default function Onboarding() {
           </div>
         </div>
 
+        <Card className="mb-4 border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="h-4 w-4 text-primary" /> Compliance reminder
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              By activating your AI phone line, you confirm that your use complies with local call
+              recording laws. Voigro automatically notifies callers that their call is AI-handled and
+              may be recorded.
+            </p>
+          </CardContent>
+        </Card>
+
         <div className="rounded-xl border bg-card p-6">
           {/* Step 1: Business Profile */}
           {currentStep.id === "business" && (
