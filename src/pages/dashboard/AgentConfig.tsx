@@ -127,6 +127,7 @@ export default function AgentConfig() {
     setTone(agent.tone || "friendly");
     setResponseStyle(agent.response_style || "concise");
     setLanguage(agent.language || "en");
+    setVoiceDeliveryInstructions((agent as any).voice_delivery_instructions || "Speak in a warm, friendly, and welcoming tone, like a polite restaurant staff member answering the phone. Smile slightly while speaking, with a natural rhythm and short pauses. Keep the delivery relaxed and conversational, not robotic. Emphasize the business name clearly. Slight pause after greeting.");
     setFallbackMessage(agent.fallback_message || "");
     setMaxClarification(String(agent.max_clarification_attempts || 3));
     setOfferCallback(agent.offer_callback_on_fallback ?? true);
