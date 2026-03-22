@@ -568,6 +568,7 @@ Deno.serve(async (req) => {
             channels: "single",
             play_beep: false,
             timeout_secs: 15,
+            maximum_length: 15,
             trim_silence: false,
             minimum_silence_duration: 800,
             client_state: makeState(phase, { recordingActive: true }),
