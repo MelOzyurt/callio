@@ -67,6 +67,10 @@ const App = () => (
             <Route path="billing" element={<Billing />} />
             <Route path="support" element={<Support />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="availability" element={<AvailabilityPage />} />
           </Route>
 
           {/* Admin routes */}
