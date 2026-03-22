@@ -169,6 +169,7 @@ export default function AgentConfig() {
     tone,
     response_style: responseStyle,
     language,
+    voice_delivery_instructions: voiceDeliveryInstructions,
     fallback_message: fallbackMessage,
     max_clarification_attempts: parseInt(maxClarification),
     offer_callback_on_fallback: offerCallback,
