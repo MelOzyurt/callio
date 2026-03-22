@@ -220,6 +220,10 @@ export default function Landing() {
             <img src={voigroLogo} alt="Voigro" className="h-7 w-7" />
             <span className="font-display text-lg font-bold text-foreground">Voigro</span>
           </div>
+          <div className="flex items-center gap-6">
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link>
+          </div>
           <p className="text-sm text-muted-foreground">© 2026 Voigro. All rights reserved.</p>
         </div>
       </footer>

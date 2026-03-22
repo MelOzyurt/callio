@@ -512,17 +512,20 @@ Deno.serve(async (req) => {
         const bh = agent.business_hours as Record<string, unknown> | undefined;
         const withinHours = bh ? isWithinBusinessHours(bh) : true;
 
-        let greeting: string;
+        const complianceNotice = "This call is handled by an AI assistant and may be recorded for quality and training purposes. ";
+
+        let agentGreeting: string;
         if (!withinHours && agent.after_hours_greeting) {
-          greeting = agent.after_hours_greeting as string;
+          agentGreeting = agent.after_hours_greeting as string;
         } else if (agent.greeting) {
-          greeting = agent.greeting as string;
+          agentGreeting = agent.greeting as string;
         } else if (org.name) {
-          greeting = `Hello, thank you for calling ${org.name}. How can I help you today?`;
+          agentGreeting = `Hello, thank you for calling ${org.name}. How can I help you today?`;
         } else {
-          greeting = "Hello, thank you for calling. How can I help you today?";
+          agentGreeting = "Hello, thank you for calling. How can I help you today?";
         }
 
+        const greeting = complianceNotice + agentGreeting;
         console.log(`[call.answered] Speaking greeting: "${greeting}", callId: ${callId}`);
 
         // Step 1: Plain speak for greeting (NO gather_using_speak)

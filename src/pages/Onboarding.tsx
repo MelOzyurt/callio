@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { ArrowRight, ArrowLeft, Loader2, Rocket } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, Rocket, ShieldCheck } from "lucide-react";
 import voigroLogo from "@/assets/voigro-logo.png";
 import { useOrgId } from "@/hooks/use-organization";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,6 +116,21 @@ export default function Onboarding() {
             ))}
           </div>
         </div>
+
+        <Card className="mb-4 border-primary/20 bg-primary/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <ShieldCheck className="h-4 w-4 text-primary" /> Compliance reminder
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              By activating your AI phone line, you confirm that your use complies with local call
+              recording laws. Voigro automatically notifies callers that their call is AI-handled and
+              may be recorded.
+            </p>
+          </CardContent>
+        </Card>
 
         <div className="rounded-xl border bg-card p-6">
           {/* Step 1: Business Profile */}

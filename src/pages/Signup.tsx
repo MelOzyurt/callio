@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import voigroLogo from "@/assets/voigro-logo.png";
@@ -13,12 +14,17 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || !name) {
       toast.error("Please fill in all fields.");
+      return;
+    }
+    if (!agreed) {
+      toast.error("Please agree to the Terms of Service and Privacy Policy.");
       return;
     }
     if (password.length < 8) {
@@ -73,7 +79,16 @@ export default function Signup() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" autoComplete="new-password" placeholder="Use a unique password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1.5" />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <div className="flex items-start gap-2">
+            <Checkbox id="terms" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} className="mt-0.5" />
+            <Label htmlFor="terms" className="text-sm font-normal text-muted-foreground leading-snug">
+              I agree to the{" "}
+              <Link to="/terms" className="font-medium text-primary hover:underline" target="_blank">Terms of Service</Link>
+              {" "}and{" "}
+              <Link to="/privacy" className="font-medium text-primary hover:underline" target="_blank">Privacy Policy</Link>
+            </Label>
+          </div>
+          <Button type="submit" className="w-full" disabled={loading || !agreed}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Account
           </Button>
