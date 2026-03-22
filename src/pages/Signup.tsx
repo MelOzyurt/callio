@@ -23,6 +23,10 @@ export default function Signup() {
       toast.error("Please fill in all fields.");
       return;
     }
+    if (!agreed) {
+      toast.error("Please agree to the Terms of Service and Privacy Policy.");
+      return;
+    }
     if (password.length < 8) {
       toast.error("Password must be at least 8 characters.");
       return;
