@@ -209,7 +209,7 @@ export default function Landing() {
             <img src={voigroLogo} alt="Voigro" className="h-7 w-7" />
             <span className="font-display text-lg font-bold text-foreground">Voigro</span>
           </div>
-          <p className="text-sm text-muted-foreground">© 2026 Callio. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2026 Voigro. All rights reserved.</p>
         </div>
       </footer>
     </div>
