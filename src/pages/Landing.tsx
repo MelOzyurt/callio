@@ -75,7 +75,7 @@ export default function Landing() {
             Never Miss a Call.<br />Never Lose a Customer.
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-6 text-lg text-muted-foreground leading-relaxed">
-            Voigro answers your business calls 24/7 with an AI agent that books appointments, captures leads, and handles orders — so you can focus on what you do best.
+            Every missed call is a lost customer. Voigro answers instantly — booking appointments, capturing leads, and handling enquiries 24/7, even while you sleep.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button variant="hero" size="xl" asChild>
