@@ -23,6 +23,10 @@ import FAQs from "./pages/dashboard/FAQs";
 import Billing from "./pages/dashboard/Billing";
 import Support from "./pages/dashboard/Support";
 import SettingsPage from "./pages/dashboard/Settings";
+import Bookings from "./pages/dashboard/Bookings";
+import CalendarPage from "./pages/dashboard/Calendar";
+import Customers from "./pages/dashboard/Customers";
+import AvailabilityPage from "./pages/dashboard/Availability";
 import NotFound from "./pages/NotFound";
 
 // Admin
@@ -63,6 +67,10 @@ const App = () => (
             <Route path="billing" element={<Billing />} />
             <Route path="support" element={<Support />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="bookings" element={<Bookings />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="availability" element={<AvailabilityPage />} />
           </Route>
 
           {/* Admin routes */}
