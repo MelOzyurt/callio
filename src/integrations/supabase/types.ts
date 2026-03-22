@@ -172,6 +172,97 @@ export type Database = {
           },
         ]
       }
+      availability_overrides: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          id: string
+          is_closed: boolean
+          organization_id: string
+          override_date: string
+          reason: string | null
+          start_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_closed?: boolean
+          organization_id: string
+          override_date: string
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_closed?: boolean
+          organization_id?: string
+          override_date?: string
+          reason?: string | null
+          start_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_overrides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      availability_rules: {
+        Row: {
+          capacity: number
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          slot_duration_minutes: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          slot_duration_minutes?: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          slot_duration_minutes?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_rules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_accounts: {
         Row: {
           created_at: string
@@ -230,6 +321,76 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: true
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          cancellation_reason: string | null
+          created_at: string
+          customer_id: string | null
+          end_at: string
+          id: string
+          metadata: Json
+          notes: string | null
+          organization_id: string
+          service_id: string | null
+          source: string
+          start_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          created_at?: string
+          customer_id?: string | null
+          end_at: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          organization_id: string
+          service_id?: string | null
+          source?: string
+          start_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancellation_reason?: string | null
+          created_at?: string
+          customer_id?: string | null
+          end_at?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          organization_id?: string
+          service_id?: string | null
+          source?: string
+          start_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_items"
             referencedColumns: ["id"]
           },
         ]
@@ -298,6 +459,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "calls_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          metadata: Json
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          metadata?: Json
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
