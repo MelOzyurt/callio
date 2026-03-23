@@ -475,4 +475,3 @@ Deno.serve(async (req) => {
     });
   }
 });
-How to Resolve G722 Codec Compatibility Issues - Manus
